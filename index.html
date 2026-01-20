@@ -3,84 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Translator Elite - PTT Version</title>
+    <title>AI Translator - Final Fix</title>
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; --card: #ffffff; --text: #202124; --border: #dadce0; }
         [data-theme="dark"] { --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124; --card: #2d2e31; --text: #e8eaed; --border: #3c4043; }
-        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; user-select: none; }
+        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
         .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        #interimText { font-size: 1.5rem; min-height: 3em; margin-bottom: 20px; font-weight: 500; border-bottom: 2px dashed var(--border); padding: 10px; color: var(--text); line-height: 1.4; display: flex; align-items: center; justify-content: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        #interimText { font-size: 1.4rem; min-height: 3em; margin-bottom: 15px; font-weight: 500; border-bottom: 2px dashed var(--border); padding: 10px; color: var(--text); }
         
-        /* စာရိုက်သည့်နေရာ */
-        .typing-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        #textInput { flex: 1; padding: 15px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
-        .btn-send-typed { background: var(--primary); color: #fff; padding: 0 20px; border-radius: 12px; border: none; font-weight: bold; }
-
-        /* Push-to-Talk Button - အကြီးကြီးလုပ်ထားသည် */
-        .ptt-container { margin-bottom: 20px; }
+        /* Push-to-Talk Button */
         #pttBtn { 
-            width: 100%; padding: 25px; border-radius: 20px; border: none; 
-            font-size: 1.3rem; font-weight: bold; color: #fff; background: var(--primary);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s;
-            touch-action: manipulation;
+            width: 100%; padding: 25px; border-radius: 20px; border: none; font-size: 1.2rem; font-weight: bold; color: #fff; background: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); touch-action: none; -webkit-user-select: none;
         }
-        #pttBtn.active { background: var(--danger); transform: scale(0.95); animation: pulse 1s infinite; }
-        
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
+        #pttBtn.active { background: var(--danger); transform: scale(0.96); }
 
-        .history { height: 350px; overflow-y: auto; background: #eaebed; padding: 15px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; }
+        /* Typing Area */
+        .typing-group { display: flex; gap: 8px; margin-top: 15px; }
+        #textInput { flex: 1; padding: 14px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; outline: none; }
+        .btn-send { background: var(--primary); color: #fff; padding: 0 15px; border-radius: 12px; border: none; font-weight: bold; }
+
+        .history { height: 350px; overflow-y: auto; background: #eaebed; padding: 15px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
         [data-theme="dark"] .history { background: #171717; }
         .bubble { background: var(--card); padding: 15px; border-radius: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .trans { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; color: var(--text); }
-        .orig { font-size: 0.9rem; opacity: 0.6; font-style: italic; }
+        .trans { font-size: 1.25rem; font-weight: bold; display: block; margin-top: 5px; }
+        .orig { font-size: 0.9rem; opacity: 0.7; font-style: italic; }
         .tools { margin-top: 10px; display: flex; gap: 20px; font-size: 0.8rem; color: var(--primary); font-weight: bold; }
-
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
     </style>
 </head>
-<body oncontextmenu="return false;">
-
-<div id="overlay">
-    <h1 id="bigText" style="font-size: 3.5rem;">...</h1>
-    <button onclick="document.getElementById('overlay').style.display='none'" style="background:var(--danger); margin-top:40px; padding:20px 40px; color:#fff; border-radius:15px; border:none; font-weight:bold;">CLOSE</button>
-</div>
+<body>
 
 <div class="container">
     <div class="card">
         <div class="header">
-            <h3 style="margin:0; color:var(--primary);">AI Translator Elite</h3>
+            <h3 style="margin:0">Travel Translator</h3>
             <button onclick="toggleTheme()" style="background:#606770; color:#fff; padding:8px 15px; border-radius:10px; border:none; font-size:0.8rem;">Dark Mode</button>
         </div>
         
-        <select id="langSelect" style="width:100%; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:1rem;">
+        <select id="langSelect" style="width:100%; padding:14px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border); background:var(--card); color:var(--text);">
             <option value="my-MM|ms-MY">🇲🇲 Burmese ➔ 🇲🇾 Malay</option>
             <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 Burmese</option>
             <option value="my-MM|zh-CN">🇲🇲 Burmese ➔ 🇨🇳 Chinese</option>
             <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 Burmese</option>
         </select>
 
-        <div id="interimText">ဖိထားပြီး စကားပြောပါ</div>
+        <div id="interimText">Hold the button to speak</div>
 
-        <div class="ptt-container">
-            <button id="pttBtn">HOLD TO SPEAK</button>
-        </div>
+        <button id="pttBtn">HOLD TO SPEAK</button>
 
         <div class="typing-group">
-            <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်ပါ...">
-            <button class="btn-send-typed" onclick="handleTyping()">Send</button>
+            <input type="text" id="textInput" placeholder="စာရိုက်ပြီး ဘာသာပြန်ပါ...">
+            <button class="btn-send" onclick="handleTyping()">Send</button>
         </div>
     </div>
-
     <div class="history" id="history"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
 <script>
-    let recognition, audioCtx, isSpeaking = false;
-    let currentText = "";
-    
+    let recognition, audioCtx, isSpeaking = false, currentText = "";
     const historyBox = document.getElementById('history'), interimBox = document.getElementById('interimText');
     const textInput = document.getElementById('textInput'), langSelect = document.getElementById('langSelect');
     const pttBtn = document.getElementById('pttBtn');
@@ -88,60 +71,45 @@
     function normalize(t) { return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(t) : t; }
     function toggleTheme() { const b = document.body; b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark'); }
     
-    // Audio Context Resume
-    function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    // Push-to-Talk Events
-    pttBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMic(); });
-    pttBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMic(); });
-    // For Desktop Testing
-    pttBtn.addEventListener('mousedown', startMic);
-    pttBtn.addEventListener('mouseup', stopMic);
-
-    function startMic() {
-        if (isSpeaking) return;
-        initAudio();
-        currentText = "";
-        interimBox.innerText = "နားထောင်နေပါသည်...";
-        pttBtn.classList.add('active');
-        pttBtn.innerText = "RELEASE TO TRANSLATE";
-
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SR();
+    // User Gesture နဲ့ Mic ကို ခွင့်ပြုချက်တောင်းစေရန်
+    function initRecognition() {
+        if (!recognition) {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+        }
         recognition.lang = langSelect.value.split('|')[0];
-        recognition.interimResults = true;
-        recognition.continuous = true;
-
-        recognition.onresult = (e) => {
-            let interim = '';
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-                if (e.results[i].isFinal) currentText += e.results[i][0].transcript;
-                else interim = e.results[i][0].transcript;
-            }
-            interimBox.innerText = currentText + interim;
-        };
-
-        recognition.start();
     }
 
-    function stopMic() {
+    // Touch Events for iPhone
+    pttBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (isSpeaking) return;
+        initRecognition();
+        currentText = "";
+        interimBox.innerText = "Listening...";
+        pttBtn.classList.add('active');
+        pttBtn.innerText = "RELEASE TO SEND";
+        recognition.start();
+    });
+
+    pttBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
         pttBtn.classList.remove('active');
         pttBtn.innerText = "HOLD TO SPEAK";
-        if (recognition) recognition.stop();
+        recognition.stop();
         
         setTimeout(() => {
             let t = interimBox.innerText.trim();
-            if (t && t !== "နားထောင်နေပါသည်..." && t !== "ဖိထားပြီး စကားပြောပါ") {
+            if (t && t !== "Listening..." && t !== "Hold the button to speak") {
                 processTranslation(normalize(t));
-                interimBox.innerText = "ဘာသာပြန်နေပါသည်...";
+                interimBox.innerText = "Translating...";
             } else {
-                interimBox.innerText = "ဖိထားပြီး စကားပြောပါ";
+                interimBox.innerText = "Hold the button to speak";
             }
         }, 500);
-    }
+    });
 
     function handleTyping() {
         const t = textInput.value.trim();
@@ -165,25 +133,33 @@
         const div = document.createElement('div');
         div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
         div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div>
-            <div class="tools">
-                <span onclick="showLarge('${t.replace(/'/g, "\\'")}')">SHOW LARGE</span>
-                <span onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY</span>
-            </div>`;
+            <div class="tools" onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY VOICE</div>`;
         historyBox.prepend(div);
-        interimBox.innerText = "ဖိထားပြီး စကားပြောပါ";
+        interimBox.innerText = "Hold the button to speak";
     }
 
     function speak(t, l) {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
         const a = new Audio(url);
         a.onended = () => { isSpeaking = false; };
-        a.play().catch(() => isSpeaking = false);
+        a.play().catch(e => { isSpeaking = false; });
     }
 
-    function showLarge(t) {
-        document.getElementById('bigText').innerText = t;
-        document.getElementById('overlay').style.display = 'flex';
-    }
+    recognition = null; // Initialize on first touch
+    
+    // Listen for results
+    setInterval(() => {
+        if (recognition) {
+            recognition.onresult = (e) => {
+                let interim = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    if (e.results[i].isFinal) currentText += e.results[i][0].transcript;
+                    else interim = e.results[i][0].transcript;
+                }
+                interimBox.innerText = currentText + interim;
+            };
+        }
+    }, 100);
 </script>
 </body>
 </html>
