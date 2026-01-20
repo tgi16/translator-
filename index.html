@@ -14,79 +14,75 @@
             --card: #2d2e31; --text: #e8eaed; --border: #3c4043; --history-bg: #171717;
         }
         body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 1000px; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
-        .sidebar { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: fit-content; }
-        .sidebar h3 { margin: 0 0 15px 0; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        .setting-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; opacity: 0.8; }
-        select, input[type="range"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
-        .main-panel { display: flex; flex-direction: column; gap: 15px; }
-        .live-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        #visualizer { width: 100%; height: 50px; background: var(--bg); border-radius: 10px; margin-bottom: 15px; }
-        #interimText { font-size: 1.4rem; min-height: 2em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 10px; }
+        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* စာရိုက်သည့်အကွက် Style */
-        .typing-area { display: flex; gap: 10px; margin-bottom: 20px; }
-        #textInput { flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--primary); background: var(--bg); color: var(--text); font-size: 1.1rem; }
+        .card { background: var(--card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
+
+        #visualizer { width: 100%; height: 40px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; }
+        #interimText { font-size: 1.3rem; min-height: 2.5em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; }
         
-        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        button { padding: 12px 18px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        /* စာရိုက်သည့်နေရာ */
+        .typing-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        #textInput { padding: 15px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
+        #textInput:focus { border-color: var(--primary); }
+        
+        /* ခလုတ်များ - ဖုန်းအတွက် အကြီးကြီးလုပ်ထားသည် */
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        button { padding: 15px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; }
         .btn-start { background: var(--primary); color: #fff; }
         .btn-start.active { animation: pulse 1.5s infinite; }
         .btn-send { background: var(--success); color: #fff; }
         .btn-stop { background: var(--danger); color: #fff; }
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
-        .history { height: 450px; overflow-y: auto; background: var(--history-bg); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .bubble { background: var(--card); padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 85%; }
-        .bubble.me { align-self: flex-start; border-left: 5px solid var(--primary); }
-        .bubble.other { align-self: flex-end; border-right: 5px solid var(--success); text-align: right; }
-        .bubble .trans { font-size: 1.2rem; font-weight: bold; margin-top: 5px; display: block; }
-        .bubble .orig { font-size: 0.9rem; opacity: 0.7; font-style: italic; }
-        .tools { margin-top: 10px; font-size: 0.8rem; color: var(--primary); font-weight: bold; cursor: pointer; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { order: 2; } }
+
+        .history { height: 350px; overflow-y: auto; background: var(--history-bg); padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { background: var(--card); padding: 12px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .bubble.me { border-left: 5px solid var(--primary); }
+        .bubble.other { border-right: 5px solid var(--success); text-align: right; }
+        .bubble .trans { font-size: 1.1rem; font-weight: bold; display: block; margin-top: 4px; }
+        .bubble .orig { font-size: 0.85rem; opacity: 0.7; }
+
+        .settings-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        select { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .btn-theme { background: #606770; color: #fff; padding: 10px; border-radius: 10px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="sidebar">
-        <h3>Settings</h3>
-        <div class="setting-group">
-            <label>ဘာသာစကား</label>
+    <div class="card">
+        <div class="header">
+            <h3>AI Translator Elite</h3>
+            <button class="btn-theme" onclick="toggleTheme()">Dark</button>
+        </div>
+        
+        <div class="settings-bar">
             <select id="langSelect">
-                <option value="my-MM|ms-MY">Burmese ➔ Malay</option>
-                <option value="ms-MY|my-MM">Malay ➔ Burmese</option>
-                <option value="my-MM|zh-CN">Burmese ➔ Chinese</option>
-                <option value="zh-CN|my-MM">Chinese ➔ Burmese</option>
+                <option value="my-MM|ms-MY">🇲🇲 မြန်မာ ➔ 🇲🇾 Malay</option>
+                <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 မြန်မာ</option>
+                <option value="my-MM|zh-CN">🇲🇲 မြန်မာ ➔ 🇨🇳 Chinese</option>
+                <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 မြန်မာ</option>
             </select>
         </div>
-        <div class="setting-group">
-            <label>နားထောင်မည့်ကြာချိန်: <span id="gapVal">2</span>s</label>
-            <input type="range" id="gapRange" min="1" max="5" step="0.5" value="2">
-        </div>
-        <button class="btn-start" onclick="toggleTheme()" style="width:100%; background:#606770; margin-bottom:10px;">Dark Mode</button>
-        <button onclick="clearHistory()" style="width:100%; background:transparent; color:var(--text); border:1px solid var(--border);">Clear History</button>
-    </div>
 
-    <div class="main-panel">
-        <div class="live-card">
-            <canvas id="visualizer"></canvas>
-            <div id="interimText">Ready to Translate</div>
-            
-            <div class="typing-area">
-                <input type="text" id="textInput" placeholder="ဒီနေရာမှာ စာရိုက်ပါ...">
-                <button class="btn-send" onclick="handleTypingSubmit()">Send</button>
-            </div>
-
+        <canvas id="visualizer"></canvas>
+        <div id="interimText">Ready to Translate</div>
+        
+        <div class="typing-area">
+            <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်နိုင်ပါတယ်...">
             <div class="btn-row">
-                <button id="startBtn" class="btn-start" onclick="start()">Start Mic</button>
-                <button id="sendBtn" class="btn-send" onclick="manualSend()" disabled>Translate Now</button>
-                <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Stop Mic</button>
+                <button id="startBtn" class="btn-start" onclick="start()">Mic Start</button>
+                <button id="sendBtn" class="btn-send" onclick="manualSend()" disabled>Translate</button>
+                <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Mic Stop</button>
             </div>
         </div>
-        <div class="history" id="history"></div>
     </div>
+
+    <div class="history" id="history"></div>
+    <button onclick="clearHistory()" style="background:transparent; color:var(--text); opacity:0.5; font-size:0.7rem;">Clear History</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
@@ -107,12 +103,26 @@
         if (t) { processTranslation(normalize(t)); textInput.value = ""; }
     }
 
-    async function start() {
+    async function startVisualizer() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser); draw();
+        } catch(e) { console.error("Mic error"); }
+    }
+
+    function draw() {
+        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
+        animationId = requestAnimationFrame(draw);
+        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
+        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
+    }
+
+    function start() {
         shouldBeRunning = true; startBtn.classList.add('active'); startBtn.disabled = true; stopBtn.disabled = false; sendBtn.disabled = false;
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser); draw();
+        startVisualizer();
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SR(); recognition.lang = langSelect.value.split('|')[0];
         recognition.continuous = true; recognition.interimResults = true;
@@ -125,7 +135,7 @@
                 else interim = e.results[i][0].transcript;
             }
             interimBox.innerText = currentText + interim;
-            silenceTimer = setTimeout(() => manualSend(), document.getElementById('gapRange').value * 1000);
+            silenceTimer = setTimeout(() => manualSend(), 2000);
         };
         recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
         recognition.start();
@@ -158,21 +168,13 @@
     function addHistory(o, t, lang) {
         const div = document.createElement('div');
         div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
-        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div class="tools" onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY VOICE</div>`;
+        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')" style="font-size:0.7rem; color:#4285f4; margin-top:5px; cursor:pointer;">REPLAY VOICE</div>`;
         historyBox.prepend(div);
     }
 
     function speak(t, l) {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
         const a = new Audio(url); a.onended = () => { isSpeaking = false; if (shouldBeRunning) recognition.start(); }; a.play();
-    }
-
-    function draw() {
-        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
-        animationId = requestAnimationFrame(draw);
-        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
-        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
-        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
     }
     function clearHistory() { historyBox.innerHTML = ""; }
 </script>
