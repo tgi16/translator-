@@ -5,29 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Translator Elite</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; --card: #ffffff; --text: #202124; --border: #dadce0; }
-        [data-theme="dark"] { --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124; --card: #2d2e31; --text: #e8eaed; --border: #3c4043; }
+        :root {
+            --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa;
+            --card: #ffffff; --text: #202124; --border: #dadce0; --history-bg: #eaebed;
+        }
+        [data-theme="dark"] {
+            --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124;
+            --card: #2d2e31; --text: #e8eaed; --border: #3c4043; --history-bg: #171717;
+        }
         body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
+        
         .card { background: var(--card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
-        #visualizer { width: 100%; height: 45px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; }
+
+        #visualizer { width: 100%; height: 40px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; }
         #interimText { font-size: 1.3rem; min-height: 2.5em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; }
+        
+        /* စာရိုက်သည့်နေရာ */
         .typing-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
         #textInput { padding: 15px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
+        #textInput:focus { border-color: var(--primary); }
+        
+        /* ခလုတ်များ - ဖုန်းအတွက် အကြီးကြီးလုပ်ထားသည် */
         .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        button { padding: 15px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; color: #fff; }
-        .btn-start { background: var(--primary); }
+        button { padding: 15px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; }
+        .btn-start { background: var(--primary); color: #fff; }
         .btn-start.active { animation: pulse 1.5s infinite; }
-        .btn-send { background: var(--success); }
-        .btn-stop { background: var(--danger); }
+        .btn-send { background: var(--success); color: #fff; }
+        .btn-stop { background: var(--danger); color: #fff; }
+        
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
-        .history { height: 350px; overflow-y: auto; background: #e9ecef; padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
-        [data-theme="dark"] .history { background: #171717; }
+
+        .history { height: 350px; overflow-y: auto; background: var(--history-bg); padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
         .bubble { background: var(--card); padding: 12px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .bubble.me { border-left: 5px solid var(--primary); align-self: flex-start; }
-        .bubble.other { border-right: 5px solid var(--success); text-align: right; align-self: flex-end; }
+        .bubble.me { border-left: 5px solid var(--primary); }
+        .bubble.other { border-right: 5px solid var(--success); text-align: right; }
+        .bubble .trans { font-size: 1.1rem; font-weight: bold; display: block; margin-top: 4px; }
+        .bubble .orig { font-size: 0.85rem; opacity: 0.7; }
+
+        .settings-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        select { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
         .btn-theme { background: #606770; color: #fff; padding: 10px; border-radius: 10px; font-size: 0.8rem; }
     </style>
 </head>
@@ -37,16 +56,21 @@
     <div class="card">
         <div class="header">
             <h3>AI Translator Elite</h3>
-            <button class="btn-theme" onclick="toggleTheme()">Dark Mode</button>
+            <button class="btn-theme" onclick="toggleTheme()">Dark</button>
         </div>
-        <select id="langSelect" style="width:100%; padding:10px; border-radius:10px; margin-bottom:15px;">
-            <option value="my-MM|ms-MY">🇲🇲 Burmese ➔ 🇲🇾 Malay</option>
-            <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 Burmese</option>
-            <option value="my-MM|zh-CN">🇲🇲 Burmese ➔ 🇨🇳 Chinese</option>
-            <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 Burmese</option>
-        </select>
+        
+        <div class="settings-bar">
+            <select id="langSelect">
+                <option value="my-MM|ms-MY">🇲🇲 မြန်မာ ➔ 🇲🇾 Malay</option>
+                <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 မြန်မာ</option>
+                <option value="my-MM|zh-CN">🇲🇲 မြန်မာ ➔ 🇨🇳 Chinese</option>
+                <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 မြန်မာ</option>
+            </select>
+        </div>
+
         <canvas id="visualizer"></canvas>
         <div id="interimText">Ready to Translate</div>
+        
         <div class="typing-area">
             <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်နိုင်ပါတယ်...">
             <div class="btn-row">
@@ -56,7 +80,9 @@
             </div>
         </div>
     </div>
+
     <div class="history" id="history"></div>
+    <button onclick="clearHistory()" style="background:transparent; color:var(--text); opacity:0.5; font-size:0.7rem;">Clear History</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
@@ -71,7 +97,11 @@
     function toggleTheme() { const b = document.body; b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark'); }
     
     textInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleTypingSubmit(); });
-    function handleTypingSubmit() { const t = textInput.value.trim(); if (t) { processTranslation(normalize(t)); textInput.value = ""; } }
+
+    function handleTypingSubmit() {
+        const t = textInput.value.trim();
+        if (t) { processTranslation(normalize(t)); textInput.value = ""; }
+    }
 
     async function startVisualizer() {
         try {
@@ -79,7 +109,7 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
             source.connect(analyser); draw();
-        } catch(e) { alert("Microphone access is required."); }
+        } catch(e) { console.error("Mic error"); }
     }
 
     function draw() {
@@ -138,7 +168,7 @@
     function addHistory(o, t, lang) {
         const div = document.createElement('div');
         div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
-        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')" style="font-size:0.7rem; color:#4285f4; margin-top:5px; cursor:pointer;">REPLAY</div>`;
+        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')" style="font-size:0.7rem; color:#4285f4; margin-top:5px; cursor:pointer;">REPLAY VOICE</div>`;
         historyBox.prepend(div);
     }
 
