@@ -2,399 +2,181 @@
 <html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Translator Elite - Pro Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Translator Elite</title>
     <style>
         :root {
-            --primary: #1a73e8;
-            --success: #34a853;
-            --danger: #d93025;
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --text: #202124;
-            --border: #dadce0;
-            --history-bg: #eaebed;
+            --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa;
+            --card: #ffffff; --text: #202124; --border: #dadce0; --history-bg: #eaebed;
         }
-
         [data-theme="dark"] {
-            --primary: #8ab4f8;
-            --success: #81c995;
-            --danger: #f28b82;
-            --bg: #202124;
-            --card: #2d2e31;
-            --text: #e8eaed;
-            --border: #3c4043;
-            --history-bg: #171717;
+            --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124;
+            --card: #2d2e31; --text: #e8eaed; --border: #3c4043; --history-bg: #171717;
         }
-
-        body {
-            font-family: 'Pyidaungsu', 'Segoe UI', Tahoma, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .sidebar {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            height: fit-content;
-        }
-
-        .sidebar h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        .setting-group { margin-bottom: 25px; }
-        label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: var(--text); opacity: 0.8; }
+        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
         
-        select, input[type="range"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); outline: none; }
+        .card { background: var(--card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
 
-        .main-panel { display: flex; flex-direction: column; gap: 20px; }
-
-        .live-card {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        #visualizer {
-            width: 100%;
-            height: 60px;
-            background: var(--bg);
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-
-        #interimText {
-            font-size: 1.5rem;
-            line-height: 1.6;
-            min-height: 2.5em;
-            color: var(--text);
-            margin-bottom: 20px;
-            font-weight: 500;
-            padding: 10px;
-            border-bottom: 1px dashed var(--border);
-        }
-
-        /* Input Area Style */
-        .input-box-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        #textInput {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            outline: none;
-            font-size: 1.1rem;
-        }
-
-        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-        }
-
+        #visualizer { width: 100%; height: 40px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; }
+        #interimText { font-size: 1.3rem; min-height: 2.5em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; }
+        
+        /* စာရိုက်သည့်နေရာ */
+        .typing-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        #textInput { padding: 15px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
+        #textInput:focus { border-color: var(--primary); }
+        
+        /* ခလုတ်များ - ဖုန်းအတွက် အကြီးကြီးလုပ်ထားသည် */
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        button { padding: 15px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; }
         .btn-start { background: var(--primary); color: #fff; }
         .btn-start.active { animation: pulse 1.5s infinite; }
-        .btn-stop { background: var(--danger); color: #fff; }
         .btn-send { background: var(--success); color: #fff; }
-        .btn-theme { background: #606770; color: white; margin-top: 10px; width: 100%; }
-
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
-
-        .history {
-            height: 500px;
-            overflow-y: auto;
-            background: var(--history-bg);
-            padding: 20px;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .bubble {
-            background: var(--card);
-            padding: 18px;
-            border-radius: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            max-width: 85%;
-        }
-
-        .bubble.me { align-self: flex-start; border-left: 6px solid var(--primary); }
-        .bubble.other { align-self: flex-end; border-right: 6px solid var(--success); text-align: right; }
-
-        .bubble .orig { font-size: 0.9rem; color: var(--text); opacity: 0.7; margin-bottom: 6px; }
-        .bubble .trans { font-size: 1.2rem; font-weight: bold; color: var(--text); line-height: 1.4; }
+        .btn-stop { background: var(--danger); color: #fff; }
         
-        .bubble-tools {
-            margin-top: 10px;
-            display: flex;
-            gap: 15px;
-            font-size: 0.8rem;
-            color: var(--primary);
-            font-weight: bold;
-            cursor: pointer;
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
 
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-            .sidebar { order: 2; }
-        }
+        .history { height: 350px; overflow-y: auto; background: var(--history-bg); padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { background: var(--card); padding: 12px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .bubble.me { border-left: 5px solid var(--primary); }
+        .bubble.other { border-right: 5px solid var(--success); text-align: right; }
+        .bubble .trans { font-size: 1.1rem; font-weight: bold; display: block; margin-top: 4px; }
+        .bubble .orig { font-size: 0.85rem; opacity: 0.7; }
+
+        .settings-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        select { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .btn-theme { background: #606770; color: #fff; padding: 10px; border-radius: 10px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="sidebar">
-        <h3>Settings</h3>
-        <div class="setting-group">
-            <label>ဘာသာစကား</label>
-            <select id="langSelect">
-                <option value="my-MM|ms-MY">Burmese ➔ Malay</option>
-                <option value="ms-MY|my-MM">Malay ➔ Burmese</option>
-                <option value="my-MM|zh-CN">Burmese ➔ Chinese</option>
-                <option value="zh-CN|my-MM">Chinese ➔ Burmese</option>
-            </select>
-        </div>
-        <div class="setting-group">
-            <label>စကားရပ်နားချိန်: <span id="gapVal">2</span>s</label>
-            <input type="range" id="gapRange" min="1" max="5" step="0.5" value="2">
-        </div>
-        <div class="setting-group">
-            <label>အသံထွက်နှုန်း: <span id="speedVal">1</span>x</label>
-            <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1">
+    <div class="card">
+        <div class="header">
+            <h3>AI Translator Elite</h3>
+            <button class="btn-theme" onclick="toggleTheme()">Dark</button>
         </div>
         
-        <button class="btn-theme" onclick="toggleTheme()">Toggle Dark Mode</button>
-        <button onclick="clearHistory()" style="width:100%; background:transparent; color:var(--text); border:1px solid var(--border); margin-top:10px;">Clear History</button>
-    </div>
-
-    <div class="main-panel">
-        <div class="live-card">
-            <canvas id="visualizer"></canvas>
-            <div id="interimText">စတင်ရန် Start ကိုနှိပ်ပါ...</div>
-            
-            <div class="input-box-container">
-                <input type="text" id="textInput" placeholder="ဒီနေရာမှာ စာရိုက်ပြီး ဘာသာပြန်နိုင်ပါတယ်...">
-                <button class="btn-send" onclick="handleTypingSubmit()">Send</button>
-            </div>
-
-            <div class="btn-row">
-                <button id="startBtn" class="btn-start" onclick="start()">Start Mic</button>
-                <button id="sendBtn" class="btn-send" onclick="manualSend()" disabled>Translate Now</button>
-                <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Stop Mic</button>
-            </div>
+        <div class="settings-bar">
+            <select id="langSelect">
+                <option value="my-MM|ms-MY">🇲🇲 မြန်မာ ➔ 🇲🇾 Malay</option>
+                <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 မြန်မာ</option>
+                <option value="my-MM|zh-CN">🇲🇲 မြန်မာ ➔ 🇨🇳 Chinese</option>
+                <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 မြန်မာ</option>
+            </select>
         </div>
 
-        <div class="history" id="history"></div>
+        <canvas id="visualizer"></canvas>
+        <div id="interimText">Ready to Translate</div>
+        
+        <div class="typing-area">
+            <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်နိုင်ပါတယ်...">
+            <div class="btn-row">
+                <button id="startBtn" class="btn-start" onclick="start()">Mic Start</button>
+                <button id="sendBtn" class="btn-send" onclick="manualSend()" disabled>Translate</button>
+                <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Mic Stop</button>
+            </div>
+        </div>
     </div>
+
+    <div class="history" id="history"></div>
+    <button onclick="clearHistory()" style="background:transparent; color:var(--text); opacity:0.5; font-size:0.7rem;">Clear History</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
-
 <script>
-    let recognition, audioCtx, analyser, dataArray, source, animationId;
-    let isSpeaking = false, shouldBeRunning = false, silenceTimer;
-    let currentText = "";
+    let recognition, audioCtx, analyser, dataArray, source, animationId, silenceTimer;
+    let isSpeaking = false, shouldBeRunning = false, currentText = "";
+    const historyBox = document.getElementById('history'), interimBox = document.getElementById('interimText');
+    const textInput = document.getElementById('textInput'), langSelect = document.getElementById('langSelect');
+    const startBtn = document.getElementById('startBtn'), sendBtn = document.getElementById('sendBtn'), stopBtn = document.getElementById('stopBtn');
 
-    const historyBox = document.getElementById('history');
-    const interimBox = document.getElementById('interimText');
-    const textInput = document.getElementById('textInput');
-    const langSelect = document.getElementById('langSelect');
-    const gapRange = document.getElementById('gapRange');
-    const speedRange = document.getElementById('speedRange');
-    const startBtn = document.getElementById('startBtn');
-    const sendBtn = document.getElementById('sendBtn');
-    const stopBtn = document.getElementById('stopBtn');
-
-    gapRange.oninput = () => document.getElementById('gapVal').innerText = gapRange.value;
-    speedRange.oninput = () => document.getElementById('speedVal').innerText = speedRange.value;
-
-    function normalize(text) {
-        return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(text) : text;
-    }
-
-    function toggleTheme() {
-        const body = document.body;
-        if (body.getAttribute('data-theme') === 'dark') {
-            body.removeAttribute('data-theme');
-        } else {
-            body.setAttribute('data-theme', 'dark');
-        }
-    }
-
+    function normalize(t) { return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(t) : t; }
+    function toggleTheme() { const b = document.body; b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark'); }
+    
     textInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleTypingSubmit(); });
 
     function handleTypingSubmit() {
-        const text = textInput.value.trim();
-        if (text) {
-            processTranslation(normalize(text));
-            textInput.value = "";
-        }
+        const t = textInput.value.trim();
+        if (t) { processTranslation(normalize(t)); textInput.value = ""; }
     }
 
     async function startVisualizer() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            draw();
-        } catch(e) { alert("Microphone access is required."); }
+            analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser); draw();
+        } catch(e) { console.error("Mic error"); }
     }
 
     function draw() {
-        const canvas = document.getElementById('visualizer');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
         animationId = requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary');
-        let x = 0;
-        let barWidth = (canvas.width / dataArray.length) * 2.5;
-        for (let i = 0; i < dataArray.length; i++) {
-            let barHeight = dataArray[i] / 3;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 2;
-        }
+        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
+        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
     }
 
     function start() {
-        shouldBeRunning = true;
-        startBtn.classList.add('active');
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-        sendBtn.disabled = false;
+        shouldBeRunning = true; startBtn.classList.add('active'); startBtn.disabled = true; stopBtn.disabled = false; sendBtn.disabled = false;
         startVisualizer();
-        initRecognition();
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR(); recognition.lang = langSelect.value.split('|')[0];
+        recognition.continuous = true; recognition.interimResults = true;
+        recognition.onresult = (e) => {
+            if (isSpeaking) return;
+            clearTimeout(silenceTimer);
+            let interim = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                if (e.results[i].isFinal) currentText += e.results[i][0].transcript + " ";
+                else interim = e.results[i][0].transcript;
+            }
+            interimBox.innerText = currentText + interim;
+            silenceTimer = setTimeout(() => manualSend(), 2000);
+        };
+        recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
         recognition.start();
     }
 
     function stop() {
-        shouldBeRunning = false;
-        startBtn.classList.remove('active');
-        isSpeaking = false;
-        if(recognition) recognition.stop();
-        if(audioCtx) audioCtx.close();
-        cancelAnimationFrame(animationId);
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
-        sendBtn.disabled = true;
-        interimBox.innerText = "စတင်ရန် Start ကိုနှိပ်ပါ...";
-        currentText = "";
-    }
-
-    function initRecognition() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = langSelect.value.split('|')[0];
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onresult = (event) => {
-            if (isSpeaking) return;
-            clearTimeout(silenceTimer);
-            let interim = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) currentText += event.results[i][0].transcript + " ";
-                else interim = event.results[i][0].transcript;
-            }
-            interimBox.innerText = currentText + interim;
-            silenceTimer = setTimeout(() => manualSend(), gapRange.value * 1000);
-        };
-
-        recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
+        shouldBeRunning = false; startBtn.classList.remove('active'); isSpeaking = false;
+        if(recognition) recognition.stop(); if(audioCtx) audioCtx.close();
+        cancelAnimationFrame(animationId); startBtn.disabled = false; stopBtn.disabled = true; sendBtn.disabled = true;
+        interimBox.innerText = "Ready to Translate"; currentText = "";
     }
 
     function manualSend() {
-        let text = interimBox.innerText.trim();
-        if (text && text !== "စတင်ရန် Start ကိုနှိပ်ပါ..." && !isSpeaking) {
-            processTranslation(normalize(text));
-            currentText = "";
-            interimBox.innerText = "ဘာသာပြန်နေပါသည်...";
-        }
+        let t = interimBox.innerText.trim();
+        if (t && t !== "Ready to Translate" && !isSpeaking) { processTranslation(normalize(t)); currentText = ""; interimBox.innerText = "Processing..."; }
     }
 
-    async function processTranslation(text) {
-        isSpeaking = true;
-        if(recognition) recognition.stop();
+    async function processTranslation(t) {
+        isSpeaking = true; if(recognition) recognition.stop();
         const [src, tgt] = langSelect.value.split('|');
         try {
-            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${src.split('-')[0]}|${tgt.split('-')[0]}`);
+            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(t)}&langpair=${src.split('-')[0]}|${tgt.split('-')[0]}`);
             const data = await res.json();
-            let translated = data.responseData.translatedText;
-            if (tgt.startsWith('my')) translated = normalize(translated);
-            addHistory(text, translated);
-            speak(translated, tgt);
-        } catch (err) { 
-            isSpeaking = false; 
-            if (shouldBeRunning) recognition.start(); 
-        }
+            let trans = data.responseData.translatedText;
+            if (tgt.startsWith('my')) trans = normalize(trans);
+            addHistory(t, trans, tgt); speak(trans, tgt);
+        } catch (e) { isSpeaking = false; if (shouldBeRunning) recognition.start(); }
     }
 
-    function addHistory(orig, trans) {
+    function addHistory(o, t, lang) {
         const div = document.createElement('div');
-        const isMe = langSelect.value.startsWith('my-MM');
-        div.className = `bubble ${isMe ? 'me' : 'other'}`;
-        div.innerHTML = `
-            <div class="orig">${orig}</div>
-            <div class="trans">${trans}</div>
-            <div class="bubble-tools">
-                <span onclick="copyText('${trans.replace(/'/g, "\\'")}')">COPY</span>
-                <span onclick="speak('${trans.replace(/'/g, "\\'")}', '${langSelect.value.split('|')[1]}')">REPLAY</span>
-            </div>`;
+        div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
+        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')" style="font-size:0.7rem; color:#4285f4; margin-top:5px; cursor:pointer;">REPLAY VOICE</div>`;
         historyBox.prepend(div);
     }
 
-    function speak(text, lang) {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang.split('-')[0]}&client=tw-ob&ttsspeed=${speedRange.value}`;
-        const audio = new Audio(url);
-        audio.onended = () => {
-            setTimeout(() => { 
-                isSpeaking = false; 
-                if (shouldBeRunning) {
-                    interimBox.innerText = "နားထောင်နေပါသည်...";
-                    recognition.start(); 
-                }
-            }, 500);
-        };
-        audio.play().catch(() => { isSpeaking = false; if (shouldBeRunning) recognition.start(); });
+    function speak(t, l) {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
+        const a = new Audio(url); a.onended = () => { isSpeaking = false; if (shouldBeRunning) recognition.start(); }; a.play();
     }
-
-    function copyText(t) { navigator.clipboard.writeText(t); alert("Copy ကူးလိုက်ပါပြီ။"); }
-    function clearHistory() { if(confirm("History အားလုံးကို ဖျက်မည်မှာ သေချာပါသလား?")) historyBox.innerHTML = ""; }
+    function clearHistory() { historyBox.innerHTML = ""; }
 </script>
-
 </body>
 </html>
