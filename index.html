@@ -3,51 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Translator Elite - Vercel Final</title>
+    <title>AI Translator Travel Pro</title>
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; --card: #ffffff; --text: #202124; --border: #dadce0; }
         [data-theme="dark"] { --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124; --card: #2d2e31; --text: #e8eaed; --border: #3c4043; }
         body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
         #visualizer { width: 100%; height: 45px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; }
-        #interimText { font-size: 1.3rem; min-height: 2.5em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; }
+        #interimText { font-size: 1.4rem; min-height: 2.5em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 5px; color: var(--text); }
         
-        /* စာရိုက်သည့်နေရာ - Send Button ပါဝင်သည် */
-        .typing-area { display: flex; gap: 8px; margin-bottom: 15px; }
-        #textInput { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
-        #textInput:focus { border-color: var(--primary); }
-        .btn-send-typed { background: var(--primary); color: #fff; padding: 0 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        /* စာရိုက်သည့်နေရာ - Send ခလုတ်အသစ် */
+        .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+        #textInput { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; outline: none; }
+        .btn-send { background: var(--primary); color: #fff; padding: 0 20px; border-radius: 12px; border: none; font-weight: bold; }
 
         .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        button { padding: 15px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; color: #fff; }
-        .btn-start { background: var(--primary); }
-        .btn-start.active { animation: pulse 1.5s infinite; }
-        .btn-translate { background: var(--success); }
-        .btn-stop { background: var(--danger); }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
+        button:active { opacity: 0.7; }
+        .btn-mic { background: var(--primary); color: #fff; padding: 15px 5px; border-radius: 12px; border: none; font-weight: bold; }
+        .btn-mic.active { animation: pulse 1.5s infinite; background: var(--danger); }
+        .btn-trans { background: var(--success); color: #fff; border-radius: 12px; border: none; font-weight: bold; }
+        .btn-stop { background: #606770; color: #fff; border-radius: 12px; border: none; font-weight: bold; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 48, 37, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); } }
 
-        .history { height: 350px; overflow-y: auto; background: #e9ecef; padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .history { height: 350px; overflow-y: auto; background: #e9ecef; padding: 15px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; }
         [data-theme="dark"] .history { background: #171717; }
-        .bubble { background: var(--card); padding: 12px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .bubble.me { border-left: 5px solid var(--primary); align-self: flex-start; }
-        .bubble.other { border-right: 5px solid var(--success); text-align: right; align-self: flex-end; }
+        .bubble { background: var(--card); padding: 15px; border-radius: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .trans { font-size: 1.2rem; font-weight: bold; display: block; margin-top: 5px; }
         .orig { font-size: 0.9rem; opacity: 0.7; font-style: italic; }
-        .btn-theme { background: #606770; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; border: none; }
+        .tools { margin-top: 10px; display: flex; gap: 15px; font-size: 0.75rem; color: var(--primary); font-weight: bold; }
+
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
     </style>
 </head>
 <body onclick="unlockAudio()">
 
+<div id="overlay">
+    <h1 id="bigText" style="font-size: 3rem;">...</h1>
+    <button onclick="document.getElementById('overlay').style.display='none'" style="background:var(--danger); margin-top:30px; padding:15px 30px; color:#fff; border-radius:12px; border:none; font-weight:bold;">CLOSE</button>
+</div>
+
 <div class="container">
     <div class="card">
         <div class="header">
-            <h3>AI Translator Elite</h3>
-            <button class="btn-theme" onclick="toggleTheme()">Theme</button>
+            <h3 style="margin:0">Travel Pro Fix</h3>
+            <button onclick="toggleTheme()" style="background:#606770; color:#fff; padding:6px 12px; border-radius:8px; border:none; font-size:0.8rem;">Dark Mode</button>
         </div>
-        <select id="langSelect" style="width:100%; padding:10px; border-radius:10px; margin-bottom:15px; background:var(--card); color:var(--text); border:1px solid var(--border);">
+        <select id="langSelect" style="width:100%; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border); background:var(--card); color:var(--text);">
             <option value="my-MM|ms-MY">🇲🇲 Burmese ➔ 🇲🇾 Malay</option>
             <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 Burmese</option>
             <option value="my-MM|zh-CN">🇲🇲 Burmese ➔ 🇨🇳 Chinese</option>
@@ -55,14 +59,16 @@
         </select>
         <canvas id="visualizer"></canvas>
         <div id="interimText">Ready to Translate</div>
-        <div class="typing-area">
+        
+        <div class="input-group">
             <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်ပါ...">
-            <button class="btn-send-typed" onclick="handleTypingSubmit()">Send</button>
+            <button class="btn-send" onclick="handleTyping()">Send</button>
         </div>
+
         <div class="btn-row">
-            <button id="startBtn" class="btn-start" onclick="start()">Mic Start</button>
-            <button id="sendBtn" class="btn-translate" onclick="manualSend()" disabled>Translate</button>
-            <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Mic Stop</button>
+            <button id="startBtn" class="btn-mic" onclick="start()">Mic Start</button>
+            <button id="sendBtn" class="btn-trans" onclick="manualSend()" disabled>Translate</button>
+            <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Stop</button>
         </div>
     </div>
     <div class="history" id="history"></div>
@@ -72,6 +78,7 @@
 <script>
     let recognition, audioCtx, analyser, dataArray, source, animationId, silenceTimer;
     let isSpeaking = false, shouldBeRunning = false, currentText = "";
+    
     const historyBox = document.getElementById('history'), interimBox = document.getElementById('interimText');
     const textInput = document.getElementById('textInput'), langSelect = document.getElementById('langSelect');
     const startBtn = document.getElementById('startBtn'), sendBtn = document.getElementById('sendBtn'), stopBtn = document.getElementById('stopBtn');
@@ -79,55 +86,47 @@
     function normalize(t) { return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(t) : t; }
     function toggleTheme() { const b = document.body; b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark'); }
     
-    // iPhone အတွက် Audio ကို ဖွင့်ပေးရန်
     function unlockAudio() {
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    textInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleTypingSubmit(); });
-    function handleTypingSubmit() { const t = textInput.value.trim(); if (t) { processTranslation(normalize(t)); textInput.value = ""; } }
+    function handleTyping() {
+        const t = textInput.value.trim();
+        if (t) { processTranslation(normalize(t)); textInput.value = ""; }
+    }
 
-    async function startVisualizer() {
+    async function start() {
+        unlockAudio();
+        shouldBeRunning = true; startBtn.classList.add('active'); startBtn.disabled = true; stopBtn.disabled = false; sendBtn.disabled = false;
+        
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
             analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
             source.connect(analyser); draw();
-        } catch(e) { alert("Mic Error: Safari Settings တွင် Microphone Allow ပေးထားရန် လိုအပ်ပါသည်။"); }
-    }
 
-    function draw() {
-        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
-        animationId = requestAnimationFrame(draw);
-        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
-        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
-        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
-    }
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SR();
+            recognition.lang = langSelect.value.split('|')[0];
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
-    function start() {
-        unlockAudio();
-        shouldBeRunning = true; startBtn.classList.add('active'); startBtn.disabled = true; stopBtn.disabled = false; sendBtn.disabled = false;
-        startVisualizer();
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) { alert("သင့် Browser သည် Speech Recognition ကို အားမပေးပါ။ Safari သုံးပေးပါ။"); return; }
-        recognition = new SR(); recognition.lang = langSelect.value.split('|')[0];
-        recognition.continuous = true; recognition.interimResults = true;
-        recognition.onresult = (e) => {
-            if (isSpeaking) return;
-            clearTimeout(silenceTimer);
-            let interim = '';
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-                if (e.results[i].isFinal) currentText += e.results[i][0].transcript + " ";
-                else interim = e.results[i][0].transcript;
-            }
-            interimBox.innerText = currentText + interim;
-            silenceTimer = setTimeout(() => manualSend(), 2000);
-        };
-        recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
-        recognition.start();
+            recognition.onresult = (e) => {
+                if (isSpeaking) return;
+                clearTimeout(silenceTimer);
+                let interim = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    if (e.results[i].isFinal) currentText += e.results[i][0].transcript + " ";
+                    else interim = e.results[i][0].transcript;
+                }
+                interimBox.innerText = currentText + interim;
+                silenceTimer = setTimeout(() => manualSend(), 2000);
+            };
+
+            recognition.onerror = (e) => { console.error(e); };
+            recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
+            recognition.start();
+        } catch(e) { alert("Mic Permission လိုအပ်ပါသည်"); stop(); }
     }
 
     function stop() {
@@ -139,7 +138,11 @@
 
     function manualSend() {
         let t = interimBox.innerText.trim();
-        if (t && t !== "Ready to Translate" && !isSpeaking) { processTranslation(normalize(t)); currentText = ""; interimBox.innerText = "Processing..."; }
+        if (t && t !== "Ready to Translate" && !isSpeaking) {
+            processTranslation(normalize(t));
+            currentText = "";
+            interimBox.innerText = "Processing...";
+        }
     }
 
     async function processTranslation(t) {
@@ -157,15 +160,33 @@
     function addHistory(o, t, lang) {
         const div = document.createElement('div');
         div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
-        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')" style="font-size:0.75rem; color:#4285f4; margin-top:5px; cursor:pointer;">REPLAY</div>`;
+        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div>
+            <div class="tools">
+                <span onclick="showLarge('${t.replace(/'/g, "\\'")}')">SHOW LARGE</span>
+                <span onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY</span>
+            </div>`;
         historyBox.prepend(div);
     }
 
     function speak(t, l) {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
-        const a = new Audio(url); a.onended = () => { isSpeaking = false; if (shouldBeRunning) recognition.start(); }; a.play();
+        const a = new Audio(url);
+        a.onended = () => { isSpeaking = false; if (shouldBeRunning) recognition.start(); };
+        a.play();
     }
-    function clearHistory() { historyBox.innerHTML = ""; }
+
+    function showLarge(t) {
+        document.getElementById('bigText').innerText = t;
+        document.getElementById('overlay').style.display = 'flex';
+    }
+
+    function draw() {
+        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
+        animationId = requestAnimationFrame(draw);
+        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
+        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
+    }
 </script>
 </body>
 </html>
