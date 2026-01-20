@@ -3,150 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Translator Elite</title>
+    <title>AI Translator Ultimate</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; --card: #ffffff; --text: #202124; --border: #dadce0; }
+        :root { --primary: #4285f4; --success: #34a853; --danger: #ea4335; --bg: #f1f3f4; --card: #ffffff; --text: #202124; --border: #dadce0; }
         [data-theme="dark"] { --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124; --card: #2d2e31; --text: #e8eaed; --border: #3c4043; }
-        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
+        
+        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 12px; display: flex; justify-content: center; transition: 0.3s; }
         .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
-        #visualizer { width: 100%; height: 45px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; }
-        #interimText { font-size: 1.3rem; min-height: 2.5em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 5px; text-align: center; }
-        .typing-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        #textInput { padding: 15px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        button { padding: 15px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; color: #fff; }
-        .btn-start { background: var(--primary); }
-        .btn-start.active { animation: pulse 1.5s infinite; }
-        .btn-send { background: var(--success); }
-        .btn-stop { background: var(--danger); }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
-        .history { height: 350px; overflow-y: auto; background: #e9ecef; padding: 12px; border-radius: 15px; display: flex; flex-direction: column; gap: 10px; }
-        [data-theme="dark"] .history { background: #171717; }
-        .bubble { background: var(--card); padding: 12px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .bubble.me { border-left: 5px solid var(--primary); align-self: flex-start; }
-        .bubble.other { border-right: 5px solid var(--success); text-align: right; align-self: flex-end; }
-        .btn-theme { background: #606770; color: #fff; padding: 10px; border-radius: 10px; font-size: 0.8rem; }
+        
+        .card { background: var(--card); padding: 20px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        #interimText { font-size: 1.5rem; min-height: 3.5em; margin-bottom: 20px; font-weight: 500; border-bottom: 2px dashed var(--border); padding: 10px; display: flex; align-items: center; justify-content: center; line-height: 1.4; }
+        
+        /* Language Select */
+        select { width: 100%; padding: 15px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 1rem; margin-bottom: 20px; outline: none; }
+
+        /* PTT Button - Android Styled */
+        #pttBtn { 
+            width: 100%; padding: 30px; border-radius: 24px; border: none; 
+            font-size: 1.4rem; font-weight: bold; color: #fff; background: var(--primary);
+            box-shadow: 0 6px 15px rgba(66, 133, 244, 0.3); transition: 0.2s;
+            touch-action: none; -webkit-tap-highlight-color: transparent;
+        }
+        #pttBtn.active { background: var(--danger); transform: scale(0.96); animation: pulse 1s infinite; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); } 70% { box-shadow: 0 0 0 25px rgba(234, 67, 53, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); } }
+
+        /* Typing Area */
+        .typing-group { display: flex; gap: 10px; margin-top: 20px; }
+        #textInput { flex: 1; padding: 15px; border-radius: 14px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; outline: none; }
+        .btn-send { background: var(--primary); color: #fff; padding: 0 20px; border-radius: 14px; border: none; font-weight: bold; }
+
+        /* History & Bubbles */
+        .history { height: 400px; overflow-y: auto; background: var(--bg); padding: 10px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .bubble { background: var(--card); padding: 15px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .trans { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 6px; }
+        .orig { font-size: 0.95rem; opacity: 0.6; font-style: italic; }
+        .tools { margin-top: 12px; display: flex; gap: 20px; font-size: 0.85rem; color: var(--primary); font-weight: bold; }
+
+        /* Fullscreen Overlay */
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; padding: 25px; text-align: center; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
+
+<div id="overlay">
+    <h1 id="bigText" style="font-size: 3.5rem;">...</h1>
+    <button onclick="document.getElementById('overlay').style.display='none'" style="background:var(--danger); margin-top:40px; padding:20px 45px; color:#fff; border-radius:16px; border:none; font-weight:bold; font-size:1.2rem;">CLOSE</button>
+</div>
 
 <div class="container">
     <div class="card">
         <div class="header">
-            <h3>AI Translator Elite</h3>
-            <button class="btn-theme" onclick="toggleTheme()">Dark Mode</button>
+            <h3 style="margin:0">AI Translator Pro</h3>
+            <button onclick="toggleTheme()" style="background:#606770; color:#fff; padding:8px 18px; border-radius:12px; border:none; font-size:0.85rem;">Dark Mode</button>
         </div>
-        <select id="langSelect" style="width:100%; padding:10px; border-radius:10px; margin-bottom:15px;">
+        
+        <select id="langSelect">
             <option value="my-MM|ms-MY">🇲🇲 Burmese ➔ 🇲🇾 Malay</option>
             <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 Burmese</option>
             <option value="my-MM|zh-CN">🇲🇲 Burmese ➔ 🇨🇳 Chinese</option>
             <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 Burmese</option>
         </select>
-        <canvas id="visualizer"></canvas>
-        <div id="interimText">Ready to Translate</div>
-        <div class="typing-area">
-            <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်နိုင်ပါတယ်...">
-            <div class="btn-row">
-                <button id="startBtn" class="btn-start" onclick="start()">Mic Start</button>
-                <button id="sendBtn" class="btn-send" onclick="manualSend()" disabled>Translate</button>
-                <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Mic Stop</button>
-            </div>
+
+        <div id="interimText">ခလုတ်ကို ဖိထားပြီး စကားပြောပါ</div>
+
+        <button id="pttBtn">HOLD TO SPEAK</button>
+
+        <div class="typing-group">
+            <input type="text" id="textInput" placeholder="စာရိုက်ပြီး ဘာသာပြန်ရန်...">
+            <button class="btn-send" onclick="handleTyping()">Send</button>
         </div>
     </div>
+
     <div class="history" id="history"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
 <script>
-    let recognition, audioCtx, analyser, dataArray, source, animationId, silenceTimer;
-    let isSpeaking = false, shouldBeRunning = false, currentText = "";
+    let recognition, audioCtx, isSpeaking = false;
+    let currentText = "";
+    
     const historyBox = document.getElementById('history'), interimBox = document.getElementById('interimText');
     const textInput = document.getElementById('textInput'), langSelect = document.getElementById('langSelect');
-    const startBtn = document.getElementById('startBtn'), sendBtn = document.getElementById('sendBtn'), stopBtn = document.getElementById('stopBtn');
+    const pttBtn = document.getElementById('pttBtn');
 
     function normalize(t) { return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(t) : t; }
     function toggleTheme() { const b = document.body; b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark'); }
     
-    textInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleTypingSubmit(); });
-    function handleTypingSubmit() { const t = textInput.value.trim(); if (t) { processTranslation(normalize(t)); textInput.value = ""; } }
+    // Pointer Events for Android (More stable than Touch events)
+    pttBtn.addEventListener('pointerdown', (e) => { 
+        e.preventDefault(); 
+        if ("vibrate" in navigator) navigator.vibrate(50); // Android Haptic Feedback
+        startMic(); 
+    });
+    
+    pttBtn.addEventListener('pointerup', (e) => { 
+        e.preventDefault(); 
+        stopMic(); 
+    });
 
-    async function startVisualizer() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser); draw();
-        } catch(e) { alert("Microphone access is required."); }
-    }
+    function startMic() {
+        if (isSpeaking) return;
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
 
-    function draw() {
-        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
-        animationId = requestAnimationFrame(draw);
-        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
-        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
-        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
-    }
+        currentText = "";
+        interimBox.innerText = "နားထောင်နေပါသည်...";
+        pttBtn.classList.add('active');
+        pttBtn.innerText = "RELEASE TO SEND";
 
-    function start() {
-        shouldBeRunning = true; startBtn.classList.add('active'); startBtn.disabled = true; stopBtn.disabled = false; sendBtn.disabled = false;
-        startVisualizer();
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SR(); recognition.lang = langSelect.value.split('|')[0];
-        recognition.continuous = true; recognition.interimResults = true;
+        if (!SR) { alert("Browser Not Supported"); return; }
+        
+        recognition = new SR();
+        recognition.lang = langSelect.value.split('|')[0];
+        recognition.interimResults = true;
+        recognition.continuous = true;
+
         recognition.onresult = (e) => {
-            if (isSpeaking) return;
-            clearTimeout(silenceTimer);
             let interim = '';
             for (let i = e.resultIndex; i < e.results.length; i++) {
-                if (e.results[i].isFinal) currentText += e.results[i][0].transcript + " ";
+                if (e.results[i].isFinal) currentText += e.results[i][0].transcript;
                 else interim = e.results[i][0].transcript;
             }
             interimBox.innerText = currentText + interim;
-            silenceTimer = setTimeout(() => manualSend(), 2000);
         };
-        recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
         recognition.start();
     }
 
-    function stop() {
-        shouldBeRunning = false; startBtn.classList.remove('active'); isSpeaking = false;
-        if(recognition) recognition.stop(); if(audioCtx) audioCtx.close();
-        cancelAnimationFrame(animationId); startBtn.disabled = false; stopBtn.disabled = true; sendBtn.disabled = true;
-        interimBox.innerText = "Ready to Translate"; currentText = "";
+    function stopMic() {
+        pttBtn.classList.remove('active');
+        pttBtn.innerText = "HOLD TO SPEAK";
+        if (recognition) recognition.stop();
+        
+        setTimeout(() => {
+            let t = interimBox.innerText.trim();
+            if (t && t !== "နားထောင်နေပါသည်..." && t !== "ခလုတ်ကို ဖိထားပြီး စကားပြောပါ") {
+                processTranslation(normalize(t));
+                interimBox.innerText = "ဘာသာပြန်နေပါသည်...";
+            } else {
+                interimBox.innerText = "ခလုတ်ကို ဖိထားပြီး စကားပြောပါ";
+            }
+        }, 600);
     }
 
-    function manualSend() {
-        let t = interimBox.innerText.trim();
-        if (t && t !== "Ready to Translate" && !isSpeaking) { processTranslation(normalize(t)); currentText = ""; interimBox.innerText = "Processing..."; }
+    function handleTyping() {
+        const t = textInput.value.trim();
+        if (t) { processTranslation(normalize(t)); textInput.value = ""; }
     }
 
     async function processTranslation(t) {
-        isSpeaking = true; if(recognition) recognition.stop();
+        isSpeaking = true;
         const [src, tgt] = langSelect.value.split('|');
         try {
             const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(t)}&langpair=${src.split('-')[0]}|${tgt.split('-')[0]}`);
             const data = await res.json();
             let trans = data.responseData.translatedText;
             if (tgt.startsWith('my')) trans = normalize(trans);
-            addHistory(t, trans, tgt); speak(trans, tgt);
-        } catch (e) { isSpeaking = false; if (shouldBeRunning) recognition.start(); }
+            addHistory(t, trans, tgt);
+            speak(trans, tgt);
+        } catch (e) { isSpeaking = false; interimBox.innerText = "Connection Error!"; }
     }
 
     function addHistory(o, t, lang) {
         const div = document.createElement('div');
         div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
-        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')" style="font-size:0.7rem; color:#4285f4; margin-top:5px; cursor:pointer;">REPLAY</div>`;
+        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div>
+            <div class="tools">
+                <span onclick="showLarge('${t.replace(/'/g, "\\'")}')">SHOW LARGE</span>
+                <span onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY VOICE</span>
+            </div>`;
         historyBox.prepend(div);
+        interimBox.innerText = "ခလုတ်ကို ဖိထားပြီး စကားပြောပါ";
     }
 
     function speak(t, l) {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
-        const a = new Audio(url); a.onended = () => { isSpeaking = false; if (shouldBeRunning) recognition.start(); }; a.play();
+        const a = new Audio(url);
+        a.onended = () => { isSpeaking = false; };
+        a.play().catch(() => isSpeaking = false);
     }
-    function clearHistory() { historyBox.innerHTML = ""; }
+
+    function showLarge(t) {
+        document.getElementById('bigText').innerText = t;
+        document.getElementById('overlay').style.display = 'flex';
+    }
 </script>
 </body>
 </html>
