@@ -1,280 +1,180 @@
 <!DOCTYPE html>
 <html lang="my">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Travel Translator</title>
-
-<style>
-:root {
-    --primary:#1a73e8;
-    --danger:#d93025;
-    --bg:#f5f6f7;
-    --card:#ffffff;
-    --text:#202124;
-    --border:#dadce0;
-}
-[data-theme="dark"]{
-    --primary:#8ab4f8;
-    --danger:#f28b82;
-    --bg:#202124;
-    --card:#2d2e31;
-    --text:#e8eaed;
-    --border:#3c4043;
-}
-body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:Pyidaungsu,Segoe UI,sans-serif;
-    display:flex;
-    justify-content:center;
-}
-.container{
-    width:100%;
-    max-width:500px;
-    padding:12px;
-}
-.card{
-    background:var(--card);
-    padding:18px;
-    border-radius:20px;
-    box-shadow:0 4px 15px rgba(0,0,0,.1);
-    text-align:center;
-}
-#interimText{
-    font-size:1.3rem;
-    min-height:3em;
-    border-bottom:2px dashed var(--border);
-    padding:10px;
-    margin:15px 0;
-}
-#pttBtn{
-    width:100%;
-    padding:22px;
-    border:none;
-    border-radius:18px;
-    font-size:1.1rem;
-    font-weight:bold;
-    color:#fff;
-    background:var(--primary);
-}
-#pttBtn.active{
-    background:var(--danger);
-    transform:scale(.96);
-}
-#pttBtn:disabled{
-    background:#999;
-}
-.typing{
-    display:flex;
-    gap:8px;
-    margin-top:15px;
-}
-#textInput{
-    flex:1;
-    padding:14px;
-    border-radius:12px;
-    border:2px solid var(--border);
-    font-size:1rem;
-}
-.sendBtn{
-    padding:0 18px;
-    border:none;
-    border-radius:12px;
-    background:var(--primary);
-    color:#fff;
-    font-weight:bold;
-}
-.history{
-    margin-top:15px;
-    height:320px;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-.bubble{
-    background:var(--card);
-    padding:12px;
-    border-radius:16px;
-}
-.orig{font-size:.85rem;opacity:.7}
-.trans{font-size:1.2rem;font-weight:bold}
-.tools{
-    margin-top:6px;
-    font-size:.8rem;
-    color:var(--primary);
-    font-weight:bold;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Translator Elite</title>
+    <style>
+        :root {
+            --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa;
+            --card: #ffffff; --text: #202124; --border: #dadce0; --history-bg: #eaebed;
+        }
+        [data-theme="dark"] {
+            --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124;
+            --card: #2d2e31; --text: #e8eaed; --border: #3c4043; --history-bg: #171717;
+        }
+        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 1000px; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+        .sidebar { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: fit-content; }
+        .sidebar h3 { margin: 0 0 15px 0; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .setting-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; opacity: 0.8; }
+        select, input[type="range"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .main-panel { display: flex; flex-direction: column; gap: 15px; }
+        .live-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        #visualizer { width: 100%; height: 50px; background: var(--bg); border-radius: 10px; margin-bottom: 15px; }
+        #interimText { font-size: 1.4rem; min-height: 2em; margin-bottom: 15px; font-weight: 500; border-bottom: 1px dashed var(--border); padding: 10px; }
+        
+        /* စာရိုက်သည့်အကွက် Style */
+        .typing-area { display: flex; gap: 10px; margin-bottom: 20px; }
+        #textInput { flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--primary); background: var(--bg); color: var(--text); font-size: 1.1rem; }
+        
+        .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        button { padding: 12px 18px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-start { background: var(--primary); color: #fff; }
+        .btn-start.active { animation: pulse 1.5s infinite; }
+        .btn-send { background: var(--success); color: #fff; }
+        .btn-stop { background: var(--danger); color: #fff; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
+        .history { height: 450px; overflow-y: auto; background: var(--history-bg); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .bubble { background: var(--card); padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 85%; }
+        .bubble.me { align-self: flex-start; border-left: 5px solid var(--primary); }
+        .bubble.other { align-self: flex-end; border-right: 5px solid var(--success); text-align: right; }
+        .bubble .trans { font-size: 1.2rem; font-weight: bold; margin-top: 5px; display: block; }
+        .bubble .orig { font-size: 0.9rem; opacity: 0.7; font-style: italic; }
+        .tools { margin-top: 10px; font-size: 0.8rem; color: var(--primary); font-weight: bold; cursor: pointer; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .sidebar { order: 2; } }
+    </style>
 </head>
-
 <body>
+
 <div class="container">
+    <div class="sidebar">
+        <h3>Settings</h3>
+        <div class="setting-group">
+            <label>ဘာသာစကား</label>
+            <select id="langSelect">
+                <option value="my-MM|ms-MY">Burmese ➔ Malay</option>
+                <option value="ms-MY|my-MM">Malay ➔ Burmese</option>
+                <option value="my-MM|zh-CN">Burmese ➔ Chinese</option>
+                <option value="zh-CN|my-MM">Chinese ➔ Burmese</option>
+            </select>
+        </div>
+        <div class="setting-group">
+            <label>နားထောင်မည့်ကြာချိန်: <span id="gapVal">2</span>s</label>
+            <input type="range" id="gapRange" min="1" max="5" step="0.5" value="2">
+        </div>
+        <button class="btn-start" onclick="toggleTheme()" style="width:100%; background:#606770; margin-bottom:10px;">Dark Mode</button>
+        <button onclick="clearHistory()" style="width:100%; background:transparent; color:var(--text); border:1px solid var(--border);">Clear History</button>
+    </div>
 
-<div class="card">
-    <h3>Travel Translator</h3>
+    <div class="main-panel">
+        <div class="live-card">
+            <canvas id="visualizer"></canvas>
+            <div id="interimText">Ready to Translate</div>
+            
+            <div class="typing-area">
+                <input type="text" id="textInput" placeholder="ဒီနေရာမှာ စာရိုက်ပါ...">
+                <button class="btn-send" onclick="handleTypingSubmit()">Send</button>
+            </div>
 
-    <select id="langSelect" style="width:100%;padding:12px;border-radius:12px;">
-        <option value="my-MM|ms-MY">🇲🇲 Burmese → 🇲🇾 Malay</option>
-        <option value="ms-MY|my-MM">🇲🇾 Malay → 🇲🇲 Burmese</option>
-        <option value="my-MM|zh-CN">🇲🇲 Burmese → 🇨🇳 Chinese</option>
-        <option value="zh-CN|my-MM">🇨🇳 Chinese → 🇲🇲 Burmese</option>
-    </select>
-
-    <div id="interimText">Hold the button to speak</div>
-    <button id="pttBtn">HOLD TO SPEAK</button>
-
-    <div class="typing">
-        <input id="textInput" placeholder="စာရိုက်ပြီး ဘာသာပြန်ပါ">
-        <button class="sendBtn" onclick="handleTyping()">Send</button>
+            <div class="btn-row">
+                <button id="startBtn" class="btn-start" onclick="start()">Start Mic</button>
+                <button id="sendBtn" class="btn-send" onclick="manualSend()" disabled>Translate Now</button>
+                <button id="stopBtn" class="btn-stop" onclick="stop()" disabled>Stop Mic</button>
+            </div>
+        </div>
+        <div class="history" id="history"></div>
     </div>
 </div>
 
-<div class="history" id="history"></div>
-
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
-
 <script>
-/* ---------- GLOBAL ---------- */
-const pttBtn = document.getElementById("pttBtn");
-const interimBox = document.getElementById("interimText");
-const historyBox = document.getElementById("history");
-const langSelect = document.getElementById("langSelect");
-const textInput = document.getElementById("textInput");
+    let recognition, audioCtx, analyser, dataArray, source, animationId, silenceTimer;
+    let isSpeaking = false, shouldBeRunning = false, currentText = "";
+    const historyBox = document.getElementById('history'), interimBox = document.getElementById('interimText');
+    const textInput = document.getElementById('textInput'), langSelect = document.getElementById('langSelect');
+    const startBtn = document.getElementById('startBtn'), sendBtn = document.getElementById('sendBtn'), stopBtn = document.getElementById('stopBtn');
 
-let recognition = null;
-let currentText = "";
-let isSpeaking = false;
+    function normalize(t) { return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(t) : t; }
+    function toggleTheme() { const b = document.body; b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark'); }
+    
+    textInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleTypingSubmit(); });
 
-/* ---------- DEVICE DETECT ---------- */
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-/* ---------- NORMALIZE ---------- */
-function normalize(t){
-    return (window.Rabbit)?Rabbit.zg2uni(t):t;
-}
-
-/* ---------- INIT SPEECH (NON-iOS ONLY) ---------- */
-function initRecognition(){
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR) return false;
-
-    recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = langSelect.value.split("|")[0];
-
-    recognition.onresult = e=>{
-        let interim="";
-        for(let i=e.resultIndex;i<e.results.length;i++){
-            if(e.results[i].isFinal){
-                currentText += e.results[i][0].transcript;
-            }else{
-                interim = e.results[i][0].transcript;
-            }
-        }
-        interimBox.innerText = currentText + interim;
-    };
-
-    recognition.onerror = ()=>{
-        interimBox.innerText="Mic error";
-    };
-    return true;
-}
-
-/* ---------- PUSH TO TALK ---------- */
-if(isIOS){
-    pttBtn.disabled = true;
-    pttBtn.innerText = "iPhone Safari ❌ Mic";
-    interimBox.innerText = "စာရိုက်ပြီးသာ အသုံးပြုနိုင်ပါတယ်";
-}else{
-    pttBtn.addEventListener("mousedown", startSpeak);
-    pttBtn.addEventListener("mouseup", stopSpeak);
-    pttBtn.addEventListener("touchstart", startSpeak);
-    pttBtn.addEventListener("touchend", stopSpeak);
-}
-
-function startSpeak(e){
-    e.preventDefault();
-    if(isSpeaking) return;
-    if(!recognition && !initRecognition()) return;
-
-    currentText="";
-    recognition.start();
-    pttBtn.classList.add("active");
-    interimBox.innerText="Listening...";
-}
-
-function stopSpeak(e){
-    e.preventDefault();
-    if(!recognition) return;
-    recognition.stop();
-    pttBtn.classList.remove("active");
-
-    setTimeout(()=>{
-        const t = interimBox.innerText.trim();
-        if(t && t!=="Listening..."){
-            translateText(normalize(t));
-        }else{
-            interimBox.innerText="Hold the button to speak";
-        }
-    },300);
-}
-
-/* ---------- TYPING ---------- */
-function handleTyping(){
-    const t = textInput.value.trim();
-    if(!t) return;
-    textInput.value="";
-    translateText(normalize(t));
-}
-
-/* ---------- TRANSLATE ---------- */
-async function translateText(t){
-    isSpeaking=true;
-    interimBox.innerText="Translating...";
-    const [src,tgt]=langSelect.value.split("|");
-
-    try{
-        const res = await fetch(
-            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(t)}&langpair=${src.split("-")[0]}|${tgt.split("-")[0]}`
-        );
-        const data = await res.json();
-        let out = data.responseData.translatedText;
-        if(tgt.startsWith("my")) out = normalize(out);
-        addHistory(t,out,tgt);
-        speak(out,tgt);
-    }catch{
-        interimBox.innerText="Error";
-        isSpeaking=false;
+    function handleTypingSubmit() {
+        const t = textInput.value.trim();
+        if (t) { processTranslation(normalize(t)); textInput.value = ""; }
     }
-}
 
-/* ---------- UI ---------- */
-function addHistory(o,t,l){
-    const d=document.createElement("div");
-    d.className="bubble";
-    d.innerHTML=`
-        <div class="orig">${o}</div>
-        <div class="trans">${t}</div>
-        <div class="tools" onclick="speak('${t.replace(/'/g,"\\'")}','${l}')">🔊 REPLAY</div>
-    `;
-    historyBox.prepend(d);
-    interimBox.innerText="Hold the button to speak";
-}
+    async function start() {
+        shouldBeRunning = true; startBtn.classList.add('active'); startBtn.disabled = true; stopBtn.disabled = false; sendBtn.disabled = false;
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser(); source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser); draw();
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR(); recognition.lang = langSelect.value.split('|')[0];
+        recognition.continuous = true; recognition.interimResults = true;
+        recognition.onresult = (e) => {
+            if (isSpeaking) return;
+            clearTimeout(silenceTimer);
+            let interim = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                if (e.results[i].isFinal) currentText += e.results[i][0].transcript + " ";
+                else interim = e.results[i][0].transcript;
+            }
+            interimBox.innerText = currentText + interim;
+            silenceTimer = setTimeout(() => manualSend(), document.getElementById('gapRange').value * 1000);
+        };
+        recognition.onend = () => { if (shouldBeRunning && !isSpeaking) recognition.start(); };
+        recognition.start();
+    }
 
-/* ---------- SPEAK ---------- */
-function speak(t,l){
-    const a=new Audio(
-        `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split("-")[0]}&client=tw-ob`
-    );
-    a.onended=()=>isSpeaking=false;
-    a.play().catch(()=>isSpeaking=false);
-}
+    function stop() {
+        shouldBeRunning = false; startBtn.classList.remove('active'); isSpeaking = false;
+        if(recognition) recognition.stop(); if(audioCtx) audioCtx.close();
+        cancelAnimationFrame(animationId); startBtn.disabled = false; stopBtn.disabled = true; sendBtn.disabled = true;
+        interimBox.innerText = "Ready to Translate"; currentText = "";
+    }
+
+    function manualSend() {
+        let t = interimBox.innerText.trim();
+        if (t && t !== "Ready to Translate" && !isSpeaking) { processTranslation(normalize(t)); currentText = ""; interimBox.innerText = "Processing..."; }
+    }
+
+    async function processTranslation(t) {
+        isSpeaking = true; if(recognition) recognition.stop();
+        const [src, tgt] = langSelect.value.split('|');
+        try {
+            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(t)}&langpair=${src.split('-')[0]}|${tgt.split('-')[0]}`);
+            const data = await res.json();
+            let trans = data.responseData.translatedText;
+            if (tgt.startsWith('my')) trans = normalize(trans);
+            addHistory(t, trans, tgt); speak(trans, tgt);
+        } catch (e) { isSpeaking = false; if (shouldBeRunning) recognition.start(); }
+    }
+
+    function addHistory(o, t, lang) {
+        const div = document.createElement('div');
+        div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
+        div.innerHTML = `<div class="orig">${o}</div><div class="trans">${t}</div><div class="tools" onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY VOICE</div>`;
+        historyBox.prepend(div);
+    }
+
+    function speak(t, l) {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
+        const a = new Audio(url); a.onended = () => { isSpeaking = false; if (shouldBeRunning) recognition.start(); }; a.play();
+    }
+
+    function draw() {
+        const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
+        animationId = requestAnimationFrame(draw);
+        const data = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(data);
+        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#4285f4';
+        for (let i = 0; i < data.length; i++) { ctx.fillRect(i * 3, canvas.height - data[i]/4, 2, data[i]/4); }
+    }
+    function clearHistory() { historyBox.innerHTML = ""; }
 </script>
 </body>
 </html>
