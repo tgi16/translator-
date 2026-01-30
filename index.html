@@ -1,117 +1,887 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Translator - Vivo Fix1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Gallery</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Lucide Icons (Global) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        :root { --primary: #4285f4; --success: #34a853; --danger: #ea4335; --bg: #f8f9fa; --card: #ffffff; --text: #202124; --border: #dadce0; }
-        [data-theme="dark"] { --primary: #8ab4f8; --success: #81c995; --danger: #f28b82; --bg: #202124; --card: #2d2e31; --text: #e8eaed; --border: #3c4043; }
-        body { font-family: 'Pyidaungsu', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 12px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 12px; }
-        .card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        #interimText { font-size: 1.4rem; min-height: 3em; margin-bottom: 15px; font-weight: 500; border-bottom: 2px dashed var(--border); padding: 10px; line-height: 1.5; color: var(--text); }
-        #pttBtn { width: 100%; padding: 25px; border-radius: 15px; border: none; font-size: 1.2rem; font-weight: bold; color: #fff; background: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); touch-action: none; }
-        #pttBtn.active { background: var(--danger); animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(234, 67, 53, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); } }
-        .typing-group { display: flex; gap: 8px; margin-top: 15px; }
-        #textInput { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); outline: none; }
-        .btn-send { background: var(--primary); color: #fff; padding: 0 15px; border-radius: 12px; border: none; font-weight: bold; }
-        .history { height: 350px; overflow-y: auto; background: #e9ecef; padding: 15px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
-        .bubble { background: var(--card); padding: 12px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #475569;
+        }
+        .cursor-wait {
+            cursor: wait;
+        }
     </style>
+
+    <!-- Import Map for Modules -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+            }
+        }
+    </script>
 </head>
-<body oncontextmenu="return false;">
+<body>
+    <div id="root"></div>
 
-<div class="container">
-    <div class="card">
-        <div class="header" style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <h3 style="margin:0">AI Translator Elite</h3>
-            <button onclick="document.body.toggleAttribute('data-theme')" style="background:#606770; color:#fff; padding:5px 10px; border-radius:8px; border:none; font-size:0.8rem;">Theme</button>
-        </div>
-        <select id="langSelect" style="width:100%; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid var(--border);">
-            <option value="my-MM|ms-MY">🇲🇲 Burmese ➔ 🇲🇾 Malay</option>
-            <option value="ms-MY|my-MM">🇲🇾 Malay ➔ 🇲🇲 Burmese</option>
-            <option value="my-MM|zh-CN">🇲🇲 Burmese ➔ 🇨🇳 Chinese</option>
-            <option value="zh-CN|my-MM">🇨🇳 Chinese ➔ 🇲🇲 Burmese</option>
-        </select>
-        <div id="interimText">ခလုတ်ကို ဖိထားပြီး စကားပြောပါ</div>
-        <button id="pttBtn">HOLD TO SPEAK</button>
-        <div class="typing-group">
-            <input type="text" id="textInput" placeholder="ဒီမှာ စာရိုက်ပါ...">
-            <button class="btn-send" onclick="handleTyping()">Send</button>
-        </div>
-    </div>
-    <div class="history" id="history"></div>
-</div>
+    <script type="text/babel" data-type="module">
+        import { initializeApp } from "firebase/app";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInWithEmailAndPassword, signOut } from "firebase/auth";
+        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
-<script src="https://cdn.jsdelivr.net/npm/rabbit-node@1.0.2/rabbit.js"></script>
-<script>
-    let recognition, isSpeaking = false;
-    const interimBox = document.getElementById('interimText'), pttBtn = document.getElementById('pttBtn');
-    const textInput = document.getElementById('textInput'), langSelect = document.getElementById('langSelect'), historyBox = document.getElementById('history');
+        // --- Lucide Icons Wrapper for Standalone HTML ---
+        const createIconComponent = (iconName) => ({ size = 24, className, ...props }) => {
+            const iconData = lucide.icons[iconName];
+            if (!iconData) return null;
 
-    function normalize(t) { return (typeof Rabbit !== 'undefined') ? Rabbit.zg2uni(t) : t; }
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                    {...props}
+                >
+                    {iconData.map(([tag, attrs], index) => (
+                        React.createElement(tag, { ...attrs, key: index })
+                    ))}
+                </svg>
+            );
+        };
 
-    pttBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); if ("vibrate" in navigator) navigator.vibrate(50); startMic(); });
-    pttBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopMic(); });
+        const Plus = createIconComponent('Plus');
+        const Trash2 = createIconComponent('Trash2');
+        const Copy = createIconComponent('Copy');
+        const ImageIcon = createIconComponent('Image'); 
+        const X = createIconComponent('X');
+        const Check = createIconComponent('Check');
+        const Search = createIconComponent('Search');
+        const LayoutGrid = createIconComponent('LayoutGrid');
+        const ListIcon = createIconComponent('List'); 
+        const Maximize2 = createIconComponent('Maximize2');
+        const SplitSquareHorizontal = createIconComponent('SplitSquareHorizontal');
+        const Star = createIconComponent('Star');
+        const Filter = createIconComponent('Filter');
+        const Moon = createIconComponent('Moon');
+        const Sun = createIconComponent('Sun');
+        const Loader2 = createIconComponent('Loader2');
+        const AlertCircle = createIconComponent('AlertCircle');
+        const LogOut = createIconComponent('LogOut');
+        const Mail = createIconComponent('Mail');
+        const Lock = createIconComponent('Lock');
 
-    function startMic() {
-        if (isSpeaking) return;
-        interimBox.innerText = "Listening...";
-        pttBtn.classList.add('active');
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) { alert("Browser Speech API Not Found"); return; }
-        recognition = new SR();
-        recognition.lang = langSelect.value.split('|')[0];
-        recognition.interimResults = true;
-        recognition.onresult = (e) => { interimBox.innerText = e.results[0][0].transcript; };
-        recognition.onerror = () => stopMic();
-        recognition.start();
-    }
+        // --- Firebase Configuration ---
+        const userConfig = {
+            apiKey: "AIzaSyBzOydmabqVRy84xE8ZusxE544dic6fnYQ",
+            authDomain: "prompt-used.firebaseapp.com",
+            projectId: "prompt-used",
+            storageBucket: "prompt-used.firebasestorage.app",
+            messagingSenderId: "18048108420",
+            appId: "1:18048108420:web:0e8b9537d1083daa81ffd1"
+        };
 
-    function stopMic() {
-        pttBtn.classList.remove('active');
-        if (recognition) recognition.stop();
-        setTimeout(() => {
-            let t = interimBox.innerText.trim();
-            if (t && t !== "Listening..." && t !== "ခလုတ်ကို ဖိထားပြီး စကားပြောပါ") {
-                processTranslation(normalize(t));
-                interimBox.innerText = "Translating...";
-            } else { interimBox.innerText = "ခလုတ်ကို ဖိထားပြီး စကားပြောပါ"; }
-        }, 500);
-    }
+        const getEnvConfig = () => {
+            try {
+                if (typeof window !== 'undefined' && window.__firebase_config) {
+                    return JSON.parse(window.__firebase_config);
+                }
+            } catch (e) {
+                console.warn("Failed to parse system config, using fallback.");
+            }
+            return null;
+        };
 
-    function handleTyping() { const t = textInput.value.trim(); if (t) { processTranslation(normalize(t)); textInput.value = ""; } }
+        const firebaseConfig = getEnvConfig() || userConfig;
+        
+        const getCurrentAppId = () => {
+            if (typeof window !== 'undefined' && window.__app_id) {
+                return window.__app_id;
+            }
+            return "prompt-gallery-app";
+        };
+        
+        const currentAppId = getCurrentAppId();
 
-    async function processTranslation(t) {
-        isSpeaking = true;
-        const [src, tgt] = langSelect.value.split('|');
-        try {
-            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(t)}&langpair=${src.split('-')[0]}|${tgt.split('-')[0]}`);
-            const data = await res.json();
-            let trans = data.responseData.translatedText;
-            if (tgt.startsWith('my')) trans = normalize(trans);
-            addHistory(t, trans, tgt);
-            speak(trans, tgt);
-        } catch (e) { isSpeaking = false; interimBox.innerText = "Connection Error!"; }
-    }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    function addHistory(o, t, lang) {
-        const div = document.createElement('div');
-        div.className = `bubble ${langSelect.value.startsWith('my-MM') ? 'me' : 'other'}`;
-        div.innerHTML = `<div style="font-size:0.9rem; opacity:0.6;">${o}</div><div style="font-size:1.2rem; font-weight:bold; margin-top:5px;">${t}</div>
-            <div style="margin-top:10px; color:#4285f4; font-size:0.8rem; font-weight:bold; cursor:pointer;" onclick="speak('${t.replace(/'/g, "\\'")}', '${lang}')">REPLAY</div>`;
-        historyBox.prepend(div);
-        interimBox.innerText = "ခလုတ်ကို ဖိထားပြီး စကားပြောပါ";
-    }
+        // --- TARGET UID CONSTANT (Optional check) ---
+        const TARGET_UID = "yNcuisZqM4WHwN5RynPDaa1xmNV2";
 
-    function speak(t, l) {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(t)}&tl=${l.split('-')[0]}&client=tw-ob`;
-        const a = new Audio(url);
-        a.onended = () => { isSpeaking = false; };
-        a.play().catch(() => isSpeaking = false);
-    }
-</script>
+        function App() {
+            // --- States ---
+            // Initialize user as NULL to force Login Screen first
+            const [user, setUser] = React.useState(null);
+            const [prompts, setPrompts] = React.useState([]);
+            const [isLoading, setIsLoading] = React.useState(true);
+            const [authError, setAuthError] = React.useState(null); 
+            
+            // Login States
+            const [email, setEmail] = React.useState("");
+            const [password, setPassword] = React.useState("");
+            const [isSigningIn, setIsSigningIn] = React.useState(false);
+
+            // UI States
+            const [isDarkMode, setIsDarkMode] = React.useState(false);
+            const [inputText, setInputText] = React.useState("");
+            const [selectedCategory, setSelectedCategory] = React.useState("General");
+            const [genPreviewUrl, setGenPreviewUrl] = React.useState(null); 
+            const [refPreviewUrl, setRefPreviewUrl] = React.useState(null); 
+            const [copiedId, setCopiedId] = React.useState(null);
+            const [selectedPrompt, setSelectedPrompt] = React.useState(null);
+            const [searchTerm, setSearchTerm] = React.useState("");
+            const [filterCategory, setFilterCategory] = React.useState("All");
+            const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
+            const [viewMode, setViewMode] = React.useState("list"); 
+            const [isUploading, setIsUploading] = React.useState(false);
+
+            const genInputRef = React.useRef(null);
+            const refInputRef = React.useRef(null);
+
+            const categories = ["General", "Portrait", "Landscape", "Sci-Fi", "Anime", "Art", "Logo", "3D"];
+
+            // --- Firebase Auth & Data Sync ---
+            
+            React.useEffect(() => {
+                const initAuth = async () => {
+                    // Check for system token (Canvas Env)
+                    const systemToken = typeof window !== 'undefined' ? window.__initial_auth_token : null;
+                    if (systemToken) {
+                        try {
+                            await signInWithCustomToken(auth, systemToken);
+                        } catch (error) {
+                            console.error("System Token Auth Failed:", error);
+                        }
+                    }
+                    setIsLoading(false);
+                };
+                initAuth();
+                
+                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                    setUser(currentUser);
+                    if (currentUser) {
+                        setIsLoading(true); // Start loading data
+                    } else {
+                        setPrompts([]); 
+                        setIsLoading(false);
+                    }
+                });
+                return () => unsubscribe();
+            }, []);
+
+            React.useEffect(() => {
+                if (!user) {
+                    setIsLoading(false);
+                    return;
+                }
+
+                const collectionRef = collection(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts');
+
+                const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
+                    const fetchedPrompts = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+                        return {
+                            ...data, // Spread data first to prevent overwriting doc.id
+                            id: doc.id, // Ensure we use the real Firestore Document ID
+                            date: createdAt.toLocaleDateString(),
+                            timestamp: createdAt.getTime()
+                        };
+                    });
+                    
+                    fetchedPrompts.sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    setPrompts(fetchedPrompts);
+                    setIsLoading(false);
+                    setAuthError(null);
+                }, (error) => {
+                    console.error("Firestore Error:", error);
+                    setAuthError(error.message);
+                    setIsLoading(false);
+                });
+
+                return () => unsubscribe();
+            }, [user]);
+
+            // --- Handlers ---
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setIsSigningIn(true);
+                setAuthError(null);
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (error) {
+                    console.error("Login Failed:", error);
+                    setAuthError("အီးမေးလ် သို့မဟုတ် စကားဝှက် မှားယွင်းနေပါသည်။");
+                } finally {
+                    setIsSigningIn(false);
+                }
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await signOut(auth);
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                }
+            };
+
+            const compressImage = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            const MAX_HEIGHT = 800;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+                            resolve(dataUrl);
+                        };
+                        img.onerror = (error) => reject(error);
+                    };
+                    reader.onerror = (error) => reject(error);
+                });
+            };
+
+            const handleImageUpload = async (e, setPreview) => {
+                const file = e.target.files[0];
+                if (file) {
+                    setIsUploading(true);
+                    try {
+                        const compressedDataUrl = await compressImage(file);
+                        setPreview(compressedDataUrl);
+                    } catch (error) {
+                        console.error("Image compression error:", error);
+                        alert("ပုံတင်ရာတွင် အဆင်မပြေဖြစ်သွားပါသည်။");
+                    } finally {
+                        setIsUploading(false);
+                    }
+                }
+            };
+
+            const handleAddPrompt = async () => {
+                if (!inputText.trim() || !user) return;
+
+                const genSize = genPreviewUrl ? genPreviewUrl.length * 0.75 : 0;
+                const refSize = refPreviewUrl ? refPreviewUrl.length * 0.75 : 0;
+                
+                if (genSize + refSize > 950000) {
+                    alert("ပုံ Size ကြီးလွန်းနေပါသည်။ ပုံတစ်ပုံချင်းစီကို ပြန်လည်စစ်ဆေးပါ သို့မဟုတ် ပုံအသစ်ပြန်ရွေးပေးပါ။");
+                    return;
+                }
+
+                const newPrompt = {
+                    text: inputText,
+                    generatedImage: genPreviewUrl || "https://placehold.co/600x400/e2e8f0/1e293b?text=No+Image",
+                    referenceImage: refPreviewUrl,
+                    category: selectedCategory,
+                    isFavorite: false,
+                    createdAt: serverTimestamp(),
+                    date: new Date().toLocaleDateString(),
+                    timestamp: Date.now()
+                };
+
+                try {
+                    await addDoc(collection(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts'), newPrompt);
+                    
+                    setInputText("");
+                    setSelectedCategory("General");
+                    setGenPreviewUrl(null);
+                    setRefPreviewUrl(null);
+                    if (genInputRef.current) genInputRef.current.value = "";
+                    if (refInputRef.current) refInputRef.current.value = "";
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                    if (e.code === 'resource-exhausted') {
+                        alert("Data ပမာဏ များလွန်းနေပါသည်။");
+                    } else if (e.code === 'permission-denied') {
+                        alert("Permission မရှိပါ။ (Login ပြန်ဝင်ကြည့်ပါ)");
+                    } else {
+                        alert("သိမ်းဆည်းရာတွင် အဆင်မပြေဖြစ်နေပါသည်။");
+                    }
+                }
+            };
+
+            const handleDelete = async (id) => {
+                if (!user) return;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts', id));
+                    if (selectedPrompt?.id === id) setSelectedPrompt(null);
+                } catch (e) {
+                    console.error("Error deleting document: ", e);
+                }
+            };
+
+            const toggleFavorite = async (id, e) => {
+                e.stopPropagation();
+                if (!user) return;
+                
+                const promptToUpdate = prompts.find(p => p.id === id);
+                if (!promptToUpdate) return;
+
+                try {
+                    const promptRef = doc(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts', id);
+                    await updateDoc(promptRef, {
+                        isFavorite: !promptToUpdate.isFavorite
+                    });
+                    
+                    if (selectedPrompt?.id === id) {
+                        setSelectedPrompt(prev => ({...prev, isFavorite: !prev.isFavorite}));
+                    }
+                } catch (error) {
+                    console.error("Error updating favorite:", error);
+                }
+            };
+
+            const handleCopy = (text, id) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        setCopiedId(id);
+                        setTimeout(() => setCopiedId(null), 2000);
+                    }
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            };
+
+            const filteredPrompts = prompts.filter(prompt => {
+                const matchesSearch = prompt.text.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesCategory = filterCategory === "All" || prompt.category === filterCategory;
+                const matchesFavorite = !showFavoritesOnly || prompt.isFavorite;
+                return matchesSearch && matchesCategory && matchesFavorite;
+            });
+
+            const theme = {
+                bg: isDarkMode ? 'bg-slate-950' : 'bg-slate-50',
+                text: isDarkMode ? 'text-slate-100' : 'text-slate-800',
+                textSec: isDarkMode ? 'text-slate-400' : 'text-slate-500',
+                cardBg: isDarkMode ? 'bg-slate-900' : 'bg-white',
+                cardBorder: isDarkMode ? 'border-slate-800' : 'border-slate-200',
+                inputBg: isDarkMode ? 'bg-slate-900' : 'bg-white',
+                inputBorder: isDarkMode ? 'border-slate-700' : 'border-slate-200',
+                headerText: isDarkMode ? 'text-indigo-400' : 'text-indigo-600',
+            };
+
+            // --- Render: Login View ---
+            if (!user && !isLoading) {
+                return (
+                    <div className={`min-h-screen font-sans flex items-center justify-center p-4 transition-colors duration-300 ${theme.bg} ${theme.text}`}>
+                        <div className={`w-full max-w-md p-8 rounded-2xl shadow-xl border ${theme.cardBg} ${theme.cardBorder}`}>
+                            <div className="text-center mb-8">
+                                <h1 className={`text-3xl font-bold mb-2 ${theme.headerText}`}>Prompt Gallery</h1>
+                                <p className={theme.textSec}>အကောင့်ဝင်ရောက်ပါ</p>
+                            </div>
+
+                            {authError && (
+                                <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    <span>{authError}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                                <div>
+                                    <label className={`block text-sm font-medium mb-1 ${theme.textSec}`}>Email</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input 
+                                            type="email" 
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className={`w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-indigo-500 outline-none ${theme.inputBg} ${theme.inputBorder}`}
+                                            placeholder="name@example.com"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className={`block text-sm font-medium mb-1 ${theme.textSec}`}>Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input 
+                                            type="password" 
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className={`w-full pl-10 p-3 rounded-xl border focus:ring-2 focus:ring-indigo-500 outline-none ${theme.inputBg} ${theme.inputBorder}`}
+                                            placeholder="••••••••"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <button 
+                                    type="submit" 
+                                    disabled={isSigningIn}
+                                    className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 flex justify-center gap-2"
+                                >
+                                    {isSigningIn && <Loader2 className="animate-spin" />}
+                                    {isSigningIn ? "ဝင်ရောက်နေသည်..." : "Login ဝင်မည်"}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- Render: Main App ---
+            return (
+                <div className={`min-h-screen font-sans p-4 md:p-8 transition-colors duration-300 ${theme.bg} ${theme.text}`}>
+                    <div className="max-w-6xl mx-auto">
+                        
+                        <header className="mb-8 flex items-center justify-between">
+                            {/* Logout Button */}
+                            <button 
+                                onClick={handleLogout}
+                                className={`p-2 rounded-full transition-all ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-400' : 'bg-white hover:bg-slate-100 text-slate-500 shadow-sm border border-slate-200'}`}
+                                title="Logout"
+                            >
+                                <LogOut size={20} />
+                            </button>
+
+                            <div className="text-center">
+                                <h1 className={`text-3xl font-bold mb-2 ${theme.headerText}`}>Prompt Gallery</h1>
+                                <p className={`${theme.textSec}`}>
+                                    Reference ပုံနှင့် ရလဒ်ပုံများကို နှိုင်းယှဉ်မှတ်သားပါ<br/>
+                                </p>
+                            </div>
+                            
+                            <button 
+                                onClick={() => setIsDarkMode(!isDarkMode)}
+                                className={`p-2.5 rounded-full transition-all ${isDarkMode ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700' : 'bg-white text-slate-600 hover:bg-slate-100 shadow-sm border border-slate-200'}`}
+                                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                            >
+                                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                            </button>
+                        </header>
+
+                        {/* Error Alert Banner */}
+                        {authError && (
+                            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
+                                <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
+                                <div>
+                                    <h3 className="text-red-800 font-semibold text-sm">Data Loading Error</h3>
+                                    <p className="text-red-600 text-xs mt-1">{authError}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className={`rounded-2xl shadow-sm p-6 mb-8 border transition-colors duration-300 ${theme.cardBg} ${theme.cardBorder}`}>
+                            <div className="flex flex-col gap-6">
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                            Reference ပုံ (Optional)
+                                        </label>
+                                        <div 
+                                            onClick={() => !isUploading && refInputRef.current.click()}
+                                            className={`border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden
+                                                ${refPreviewUrl 
+                                                ? 'border-indigo-500/50' 
+                                                : isDarkMode ? 'border-slate-700 hover:border-slate-600 hover:bg-slate-800' : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'}
+                                                ${isUploading ? 'opacity-50 cursor-wait' : ''}
+                                            `}
+                                        >
+                                            {isUploading && !refPreviewUrl ? (
+                                                <div className="flex flex-col items-center">
+                                                    <Loader2 className="animate-spin text-indigo-500 mb-2" size={24} />
+                                                    <span className="text-xs text-indigo-500">Compressing...</span>
+                                                </div>
+                                            ) : refPreviewUrl ? (
+                                                <img src={refPreviewUrl} alt="Ref Preview" className="h-full w-full object-contain" />
+                                            ) : (
+                                                <div className="text-center p-2">
+                                                    <SplitSquareHorizontal className={`w-6 h-6 mx-auto mb-1 ${isDarkMode ? 'text-slate-600' : 'text-slate-400'}`} />
+                                                    <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Reference ပုံ</span>
+                                                </div>
+                                            )}
+                                            <input type="file" ref={refInputRef} onChange={(e) => handleImageUpload(e, setRefPreviewUrl)} accept="image/*" className="hidden" disabled={isUploading} />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                            Prompt ရလဒ်ပုံ <span className="text-red-500">*</span>
+                                        </label>
+                                        <div 
+                                            onClick={() => !isUploading && genInputRef.current.click()}
+                                            className={`border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden
+                                                ${genPreviewUrl 
+                                                ? 'border-indigo-500' 
+                                                : isDarkMode ? 'border-slate-700 hover:border-slate-600 hover:bg-slate-800' : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'}
+                                                ${isUploading ? 'opacity-50 cursor-wait' : ''}
+                                            `}
+                                        >
+                                            {isUploading && !genPreviewUrl ? (
+                                                <div className="flex flex-col items-center">
+                                                    <Loader2 className="animate-spin text-indigo-500 mb-2" size={24} />
+                                                    <span className="text-xs text-indigo-500">Compressing...</span>
+                                                </div>
+                                            ) : genPreviewUrl ? (
+                                                <img src={genPreviewUrl} alt="Generated Preview" className="h-full w-full object-contain" />
+                                            ) : (
+                                                <div className="text-center p-2">
+                                                    <ImageIcon className={`w-6 h-6 mx-auto mb-1 ${isDarkMode ? 'text-slate-600' : 'text-slate-400'}`} />
+                                                    <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>ရလဒ်ပုံ</span>
+                                                </div>
+                                            )}
+                                            <input type="file" ref={genInputRef} onChange={(e) => handleImageUpload(e, setGenPreviewUrl)} accept="image/*" className="hidden" disabled={isUploading} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex gap-2 items-center">
+                                        <select 
+                                            value={selectedCategory}
+                                            onChange={(e) => setSelectedCategory(e.target.value)}
+                                            className={`p-2 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none ${theme.inputBg} ${theme.inputBorder} ${theme.text}`}
+                                        >
+                                            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                        </select>
+                                        <span className={`text-xs ${theme.textSec}`}>Category ရွေးရန်</span>
+                                    </div>
+
+                                    <textarea
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        placeholder="ဒီပုံအတွက် သုံးထားတဲ့ Prompt ကို ရေးပါ..."
+                                        className={`w-full p-3 rounded-xl border focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none h-20 resize-none text-sm font-mono transition-colors
+                                            ${theme.inputBg} ${theme.inputBorder} ${theme.text} placeholder:text-slate-500
+                                        `}
+                                    />
+                                    <button
+                                        onClick={handleAddPrompt}
+                                        disabled={!inputText.trim() || isUploading}
+                                        className={`w-full py-2.5 rounded-xl flex items-center justify-center gap-2 font-semibold transition-all text-sm
+                                            ${inputText.trim() && !isUploading
+                                                ? 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-md transform hover:-translate-y-0.5' 
+                                                : `${isDarkMode ? 'bg-slate-800 text-slate-600' : 'bg-slate-200 text-slate-400'} cursor-not-allowed`}
+                                        `}
+                                    >
+                                        {isUploading ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
+                                        <span>သိမ်းဆည်းမည်</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={`flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 sticky top-2 z-10 backdrop-blur-md py-3 px-4 rounded-2xl border shadow-sm transition-colors duration-300
+                            ${isDarkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-slate-50/95 border-white/50'}
+                        `}>
+                            <div className="relative w-full lg:w-96">
+                                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.textSec}`} size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Prompt များ ရှာရန်..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className={`w-full pl-10 pr-4 py-2 rounded-xl border focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm shadow-sm transition-colors
+                                        ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 placeholder:text-slate-500' : 'bg-white border-slate-200 text-slate-800'}
+                                    `}
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border shadow-sm transition-colors ${theme.cardBg} ${theme.cardBorder}`}>
+                                    <Filter size={14} className={theme.textSec} />
+                                    <select 
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                        className={`text-sm bg-transparent border-none outline-none cursor-pointer min-w-[80px] ${theme.textSec}`}
+                                    >
+                                        <option value="All">All Categories</option>
+                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    </select>
+                                </div>
+
+                                <button
+                                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm transition-all shadow-sm
+                                        ${showFavoritesOnly 
+                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' 
+                                            : `${theme.cardBg} ${theme.cardBorder} ${theme.textSec} hover:bg-opacity-80`}
+                                    `}
+                                >
+                                    <Star size={14} fill={showFavoritesOnly ? "currentColor" : "none"} />
+                                    <span>Favorites</span>
+                                </button>
+
+                                <div className={`flex rounded-xl p-1 border shadow-sm ml-2 ${theme.cardBg} ${theme.cardBorder}`}>
+                                    <button 
+                                        onClick={() => setViewMode('grid')} 
+                                        className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-indigo-500/10 text-indigo-500' : `${theme.textSec} hover:bg-slate-100/10`}`}
+                                        title="Grid View"
+                                    >
+                                        <LayoutGrid size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={() => setViewMode('list')} 
+                                        className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-indigo-500/10 text-indigo-500' : `${theme.textSec} hover:bg-slate-100/10`}`}
+                                        title="List View"
+                                    >
+                                        <ListIcon size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {isLoading && (
+                            <div className="flex justify-center py-12">
+                                <Loader2 className={`animate-spin ${theme.textSec}`} size={32} />
+                            </div>
+                        )}
+
+                        {!isLoading && (
+                            <div className={viewMode === 'grid' 
+                                ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4" 
+                                : "flex flex-col gap-3" 
+                            }>
+                                {filteredPrompts.map((item) => (
+                                    viewMode === 'grid' ? (
+                                        <div 
+                                            key={item.id} 
+                                            className={`rounded-xl shadow-sm border overflow-hidden transition-all group cursor-pointer aspect-square relative
+                                                ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:border-indigo-500/50' : 'bg-white border-slate-200 hover:shadow-md hover:border-indigo-300'}
+                                            `}
+                                            onClick={() => setSelectedPrompt(item)}
+                                        >
+                                            <img src={item.generatedImage} alt="Generated result" className="w-full h-full object-cover" />
+                                            
+                                            <div className="absolute top-1 left-1 right-1 flex justify-between items-start pointer-events-none">
+                                                <span className="bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] text-white font-medium border border-white/10">
+                                                    {item.category || "General"}
+                                                </span>
+
+                                                <div className="flex gap-1">
+                                                    {item.referenceImage && (
+                                                    <span className="bg-black/50 backdrop-blur-sm p-1 rounded-full text-white">
+                                                        <SplitSquareHorizontal size={8} />
+                                                    </span>
+                                                    )}
+                                                    {item.isFavorite && (
+                                                    <span className="bg-amber-400 p-1 rounded-full text-white shadow-sm">
+                                                        <Star size={8} fill="currentColor" />
+                                                    </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                        </div>
+                                    ) : (
+                                        <div 
+                                            key={item.id} 
+                                            onClick={() => setSelectedPrompt(item)}
+                                            className={`rounded-xl shadow-sm border p-3 flex gap-4 items-center transition-all cursor-pointer group
+                                                ${isDarkMode ? 'bg-slate-900 border-slate-800 hover:border-indigo-500/30' : 'bg-white border-slate-200 hover:shadow-md hover:border-indigo-200'}
+                                            `}
+                                        >
+                                            <div className={`w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden relative border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-100'}`}>
+                                                <img src={item.generatedImage} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                {item.referenceImage && (
+                                                    <div className="absolute bottom-0 right-0 bg-indigo-600 p-1 rounded-tl-md">
+                                                        <SplitSquareHorizontal size={10} className="text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-grow min-w-0 flex flex-col justify-center h-full gap-1">
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className={`text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border 
+                                                        ${isDarkMode ? 'bg-indigo-900/30 text-indigo-300 border-indigo-500/20' : 'text-indigo-500 bg-indigo-50 border-indigo-100'}
+                                                    `}>
+                                                        {item.category || "General"}
+                                                    </span>
+                                                    <span className={`text-xs ${theme.textSec}`}>{item.date}</span>
+                                                </div>
+                                                <p className={`text-sm font-mono truncate w-full transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-indigo-400' : 'text-slate-700 group-hover:text-indigo-600'}`}>
+                                                    {item.text}
+                                                </p>
+                                            </div>
+
+                                            <div className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-600' : 'text-slate-300'}`}>
+                                                <button 
+                                                    onClick={(e) => toggleFavorite(item.id, e)}
+                                                    className={`p-1.5 rounded-full hover:bg-opacity-10 transition-colors ${item.isFavorite ? 'text-amber-400' : 'hover:text-amber-400 hover:bg-slate-500'}`}
+                                                    title="Add to Favorites"
+                                                >
+                                                    <Star size={18} fill={item.isFavorite ? "currentColor" : "none"} />
+                                                </button>
+                                                <div className="group-hover:text-indigo-400 px-1">
+                                                    <Maximize2 size={16} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                ))}
+                            </div>
+                        )}
+
+                        {selectedPrompt && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                                <div className={`rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                                    
+                                    <button 
+                                        onClick={() => setSelectedPrompt(null)}
+                                        className="absolute top-4 right-4 z-10 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-md transition-colors"
+                                    >
+                                        <X size={20} />
+                                    </button>
+
+                                    <div className={`flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4 ${!selectedPrompt.referenceImage ? 'justify-center' : ''} ${isDarkMode ? 'bg-black/50' : 'bg-slate-900'}`}>
+                                        
+                                        {/* Generated Image - Primary */}
+                                        <div className="flex-1 flex flex-col min-h-[60%]">
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Generated Result</span>
+                                            <img 
+                                                src={selectedPrompt.generatedImage} 
+                                                alt="Generated" 
+                                                className="w-full h-full object-contain rounded-lg shadow-lg bg-slate-800 ring-1 ring-white/10" 
+                                            />
+                                        </div>
+
+                                        {/* Reference Image - Secondary */}
+                                        {selectedPrompt.referenceImage && (
+                                            <div className="h-40 shrink-0 flex flex-col pt-4 border-t border-slate-700/50">
+                                                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Original Reference</span>
+                                                <img 
+                                                    src={selectedPrompt.referenceImage} 
+                                                    alt="Reference" 
+                                                    className="w-full h-full object-contain rounded-lg shadow-sm opacity-60 hover:opacity-100 transition-opacity bg-slate-800/50" 
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className={`w-full md:w-[400px] p-6 flex flex-col ${isDarkMode ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}`}>
+                                        <div className="flex-grow overflow-y-auto">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h3 className="text-xl font-bold">Prompt Details</h3>
+                                                <button 
+                                                    onClick={(e) => toggleFavorite(selectedPrompt.id, e)}
+                                                    className={`p-1 rounded-full transition-colors ${selectedPrompt.isFavorite ? 'text-amber-400' : `${isDarkMode ? 'text-slate-600 hover:text-amber-400 hover:bg-slate-800' : 'text-slate-300 hover:text-amber-400 hover:bg-slate-50'}`}`}
+                                                >
+                                                    <Star size={24} fill={selectedPrompt.isFavorite ? "currentColor" : "none"} />
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="flex gap-2 mb-6">
+                                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDarkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+                                                    {selectedPrompt.category || "General"}
+                                                </span>
+                                                <p className={`text-sm flex items-center ${theme.textSec}`}>{selectedPrompt.date}</p>
+                                            </div>
+                                            
+                                            <div className={`p-5 rounded-xl border shadow-inner ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                                                <p className={`text-sm font-mono leading-relaxed whitespace-pre-wrap select-all ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                    {selectedPrompt.text}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className={`mt-6 pt-6 border-t flex flex-col gap-3 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                                            <button 
+                                                onClick={() => handleCopy(selectedPrompt.text, selectedPrompt.id)}
+                                                className={`w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-medium transition-all
+                                                    ${copiedId === selectedPrompt.id 
+                                                        ? 'bg-green-600 text-white' 
+                                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'}
+                                                `}
+                                            >
+                                                {copiedId === selectedPrompt.id ? <Check size={18} /> : <Copy size={18} />}
+                                                {copiedId === selectedPrompt.id ? 'Copied to Clipboard!' : 'Copy Prompt'}
+                                            </button>
+
+                                            <button 
+                                                onClick={() => handleDelete(selectedPrompt.id)}
+                                                className={`w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors
+                                                    ${isDarkMode ? 'text-red-400 hover:bg-red-900/20' : 'text-red-500 hover:bg-red-50'}
+                                                `}
+                                            >
+                                                <Trash2 size={18} /> Delete Entry
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
