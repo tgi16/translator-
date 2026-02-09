@@ -103,6 +103,8 @@
         const Mail = createIconComponent('Mail');
         const Lock = createIconComponent('Lock');
         const Users = createIconComponent('Users');
+        const Download = createIconComponent('Download');
+        const PenTool = createIconComponent('PenTool');
 
         // --- Firebase Configuration ---
         const userConfig = {
@@ -148,6 +150,8 @@
             "S4hgKzepxJOX7TlleVoAzL6Yxal2"  // User 2
         ];
 
+        const SKETCH_PROMPT_TEXT = "Refrence subject from Image(2), from Image(1) sketch line image to 8k hyper-realsic rendering. don't change image(1) sketch line postion, angel, perceptive and composition. Original camera angle, frame, Position and perceptive don’t change.";
+
         function App() {
             // --- States ---
             const [user, setUser] = React.useState(null);
@@ -173,7 +177,7 @@
             const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
             const [viewMode, setViewMode] = React.useState("list"); 
             const [isUploading, setIsUploading] = React.useState(false);
-
+            
             const genInputRef = React.useRef(null);
             const refInputRef = React.useRef(null);
 
@@ -223,7 +227,6 @@
                     return;
                 }
 
-                // ALWAYS read from MAIN_OWNER_UID path (Shared Gallery)
                 const collectionRef = collection(db, 'artifacts', currentAppId, 'users', MAIN_OWNER_UID, 'prompts');
 
                 const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
@@ -274,6 +277,16 @@
                 } catch (error) {
                     console.error("Logout Error:", error);
                 }
+            };
+
+            const addSketchPrompt = () => {
+                if (inputText.includes(SKETCH_PROMPT_TEXT)) {
+                    return;
+                }
+                const newText = inputText.trim() 
+                    ? `${inputText.trim()}\n\n${SKETCH_PROMPT_TEXT}` 
+                    : SKETCH_PROMPT_TEXT;
+                setInputText(newText);
             };
 
             const compressImage = (file) => {
@@ -352,13 +365,13 @@
                     createdAt: serverTimestamp(),
                     date: new Date().toLocaleDateString(),
                     timestamp: Date.now(),
-                    author: user.uid // Track who added it
+                    author: user.uid
                 };
 
                 try {
-                    // Always write to MAIN_OWNER_UID path
                     await addDoc(collection(db, 'artifacts', currentAppId, 'users', MAIN_OWNER_UID, 'prompts'), newPrompt);
                     
+                    // Reset
                     setInputText("");
                     setSelectedCategory("General");
                     setGenPreviewUrl(null);
@@ -369,10 +382,8 @@
                     console.error("Error adding document: ", e);
                     if (e.code === 'resource-exhausted') {
                         alert("Data ပမာဏ များလွန်းနေပါသည်။");
-                    } else if (e.code === 'permission-denied') {
-                        alert("Permission မရှိပါ။ (Firestore Rules တွင် UID နှစ်ခုလုံးကို Allow လုပ်ပေးရန်လိုအပ်ပါသည်)");
                     } else {
-                        alert("သိမ်းဆည်းရာတွင် အဆင်မပြေဖြစ်နေပါသည်။");
+                        alert("သိမ်းဆည်းရာတွင် အဆင်မပြေဖြစ်နေပါသည်။ (Permission Error ဖြစ်နိုင်သည်)");
                     }
                 }
             };
@@ -384,7 +395,7 @@
                     if (selectedPrompt?.id === id) setSelectedPrompt(null);
                 } catch (e) {
                     console.error("Error deleting document: ", e);
-                    alert("ဖျက်ပိုင်ခွင့် မရှိပါ။ (သို့မဟုတ် Rules မှားယွင်းနေပါသည်)");
+                    alert("ဖျက်ပိုင်ခွင့် မရှိပါ။");
                 }
             };
 
@@ -395,7 +406,6 @@
                 const promptToUpdate = prompts.find(p => p.id === id);
                 if (!promptToUpdate) return;
 
-                // Optimistic UI update
                 const updatedPrompts = prompts.map(p => 
                     p.id === id ? { ...p, isFavorite: !p.isFavorite } : p
                 );
@@ -414,7 +424,7 @@
                 }
             };
 
-            const handleCopy = (text, id) => {
+            const handleCopy = (text) => {
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
                 textArea.style.position = "fixed";
@@ -424,15 +434,20 @@
                 textArea.focus();
                 textArea.select();
                 try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        setCopiedId(id);
-                        setTimeout(() => setCopiedId(null), 2000);
-                    }
+                    document.execCommand('copy');
                 } catch (err) {
                     console.error('Fallback copy failed', err);
                 }
                 document.body.removeChild(textArea);
+            };
+
+            const handleDownload = (imageUrl, fileName) => {
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `prompt-gallery-${fileName}-${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             };
 
             const filteredPrompts = prompts.filter(prompt => {
@@ -549,7 +564,7 @@
                             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
                                 <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
                                 <div>
-                                    <h3 className="text-red-800 font-semibold text-sm">Data Loading Error</h3>
+                                    <h3 className="text-red-800 font-semibold text-sm">Data Access Error</h3>
                                     <p className="text-red-600 text-xs mt-1">{authError}</p>
                                 </div>
                             </div>
@@ -620,16 +635,31 @@
                                     </div>
                                 </div>
 
+                                {/* Text Inputs */}
                                 <div className="flex flex-col gap-3">
-                                    <div className="flex gap-2 items-center">
-                                        <select 
-                                            value={selectedCategory}
-                                            onChange={(e) => setSelectedCategory(e.target.value)}
-                                            className={`p-2 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none ${theme.inputBg} ${theme.inputBorder} ${theme.text}`}
-                                        >
-                                            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                        </select>
-                                        <span className={`text-xs ${theme.textSec}`}>Category ရွေးရန်</span>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex gap-2 items-center flex-1">
+                                            <select 
+                                                value={selectedCategory}
+                                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                                className={`p-2 rounded-lg border text-sm focus:ring-2 focus:ring-indigo-500 outline-none ${theme.inputBg} ${theme.inputBorder} ${theme.text}`}
+                                            >
+                                                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                            </select>
+                                            <span className={`text-xs ${theme.textSec}`}>Category ရွေးရန်</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={addSketchPrompt}
+                                                className={`text-xs flex items-center gap-1 px-3 py-1.5 rounded-lg border transition-colors
+                                                    ${isDarkMode ? 'border-slate-700 hover:bg-slate-800 text-teal-400' : 'border-slate-200 hover:bg-teal-50 text-teal-600'}
+                                                `}
+                                                title="Add Sketch Prompt"
+                                            >
+                                                <PenTool size={14} />
+                                                <span>Sketch Prompt</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <textarea
@@ -640,6 +670,7 @@
                                             ${theme.inputBg} ${theme.inputBorder} ${theme.text} placeholder:text-slate-500
                                         `}
                                     />
+
                                     <button
                                         onClick={handleAddPrompt}
                                         disabled={!inputText.trim() || isUploading}
@@ -656,6 +687,7 @@
                             </div>
                         </div>
 
+                        {/* Search & Filter Bar */}
                         <div className={`flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 sticky top-2 z-10 backdrop-blur-md py-3 px-4 rounded-2xl border shadow-sm transition-colors duration-300
                             ${isDarkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-slate-50/95 border-white/50'}
                         `}>
@@ -810,7 +842,7 @@
 
                         {selectedPrompt && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                                <div className={`rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+                                <div className={`rounded-3xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col md:flex-row relative animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
                                     
                                     <button 
                                         onClick={() => setSelectedPrompt(null)}
@@ -819,11 +851,20 @@
                                         <X size={20} />
                                     </button>
 
+                                    {/* Image Section */}
                                     <div className={`flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4 ${!selectedPrompt.referenceImage ? 'justify-center' : ''} ${isDarkMode ? 'bg-black/50' : 'bg-slate-900'}`}>
                                         
                                         {/* Generated Image - Primary */}
-                                        <div className="flex-1 flex flex-col min-h-[60%]">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Generated Result</span>
+                                        <div className="flex-1 flex flex-col min-h-[60%] relative group/img">
+                                            <div className="flex justify-between items-center mb-2 px-1">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Generated Result</span>
+                                                <button 
+                                                    onClick={() => handleDownload(selectedPrompt.generatedImage, 'generated')}
+                                                    className="bg-black/50 hover:bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                                >
+                                                    <Download size={12} /> Download
+                                                </button>
+                                            </div>
                                             <img 
                                                 src={selectedPrompt.generatedImage} 
                                                 alt="Generated" 
@@ -834,7 +875,9 @@
                                         {/* Reference Image - Secondary */}
                                         {selectedPrompt.referenceImage && (
                                             <div className="h-40 shrink-0 flex flex-col pt-4 border-t border-slate-700/50">
-                                                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Original Reference</span>
+                                                <div className="flex justify-between items-center mb-2 px-1">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Original Reference</span>
+                                                </div>
                                                 <img 
                                                     src={selectedPrompt.referenceImage} 
                                                     alt="Reference" 
@@ -844,8 +887,9 @@
                                         )}
                                     </div>
 
-                                    <div className={`w-full md:w-[400px] p-6 flex flex-col ${isDarkMode ? 'bg-slate-900 text-slate-200' : 'bg-white text-slate-800'}`}>
-                                        <div className="flex-grow overflow-y-auto">
+                                    {/* Details Section */}
+                                    <div className={`w-full md:w-[450px] p-6 flex flex-col border-l ${isDarkMode ? 'bg-slate-900 text-slate-200 border-slate-800' : 'bg-white text-slate-800 border-slate-100'}`}>
+                                        <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
                                             <div className="flex justify-between items-start mb-1">
                                                 <h3 className="text-xl font-bold">Prompt Details</h3>
                                                 <button 
@@ -856,14 +900,14 @@
                                                 </button>
                                             </div>
                                             
-                                            <div className="flex gap-2 mb-6">
+                                            <div className="flex flex-wrap gap-2 mb-6">
                                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDarkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
                                                     {selectedPrompt.category || "General"}
                                                 </span>
-                                                <p className={`text-sm flex items-center ${theme.textSec}`}>{selectedPrompt.date}</p>
+                                                <p className={`text-sm flex items-center ${theme.textSec} ml-auto`}>{selectedPrompt.date}</p>
                                             </div>
                                             
-                                            <div className={`p-5 rounded-xl border shadow-inner ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                                            <div className={`p-5 rounded-xl border shadow-inner mb-4 ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
                                                 <p className={`text-sm font-mono leading-relaxed whitespace-pre-wrap select-all ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                                                     {selectedPrompt.text}
                                                 </p>
@@ -871,25 +915,27 @@
                                         </div>
 
                                         <div className={`mt-6 pt-6 border-t flex flex-col gap-3 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                                            <button 
-                                                onClick={() => handleCopy(selectedPrompt.text, selectedPrompt.id)}
-                                                className={`w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-medium transition-all
-                                                    ${copiedId === selectedPrompt.id 
-                                                        ? 'bg-green-600 text-white' 
-                                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'}
-                                                `}
-                                            >
-                                                {copiedId === selectedPrompt.id ? <Check size={18} /> : <Copy size={18} />}
-                                                {copiedId === selectedPrompt.id ? 'Copied to Clipboard!' : 'Copy Prompt'}
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => handleCopy(selectedPrompt.text)}
+                                                    className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 font-medium transition-all
+                                                        ${copiedId === selectedPrompt.id 
+                                                            ? 'bg-green-600 text-white' 
+                                                            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'}
+                                                    `}
+                                                >
+                                                    {copiedId === selectedPrompt.id ? <Check size={18} /> : <Copy size={18} />}
+                                                    {copiedId === selectedPrompt.id ? 'Copied!' : 'Copy Prompt'}
+                                                </button>
+                                            </div>
 
                                             <button 
                                                 onClick={() => handleDelete(selectedPrompt.id)}
-                                                className={`w-full py-3.5 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors
+                                                className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors text-sm
                                                     ${isDarkMode ? 'text-red-400 hover:bg-red-900/20' : 'text-red-500 hover:bg-red-50'}
                                                 `}
                                             >
-                                                <Trash2 size={18} /> Delete Entry
+                                                <Trash2 size={16} /> Delete Entry
                                             </button>
                                         </div>
                                     </div>
