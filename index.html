@@ -102,6 +102,7 @@
         const LogOut = createIconComponent('LogOut');
         const Mail = createIconComponent('Mail');
         const Lock = createIconComponent('Lock');
+        const Users = createIconComponent('Users');
 
         // --- Firebase Configuration ---
         const userConfig = {
@@ -140,12 +141,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- TARGET UID CONSTANT (Optional check) ---
-        const TARGET_UID = "yNcuisZqM4WHwN5RynPDaa1xmNV2";
+        // --- SHARED CONFIGURATION ---
+        const MAIN_OWNER_UID = "yNcuisZqM4WHwN5RynPDaa1xmNV2"; // Main storage location
+        const ALLOWED_UIDS = [
+            "yNcuisZqM4WHwN5RynPDaa1xmNV2", // User 1
+            "S4hgKzepxJOX7TlleVoAzL6Yxal2"  // User 2
+        ];
 
         function App() {
             // --- States ---
-            // Initialize user as NULL to force Login Screen first
             const [user, setUser] = React.useState(null);
             const [prompts, setPrompts] = React.useState([]);
             const [isLoading, setIsLoading] = React.useState(true);
@@ -179,7 +183,6 @@
             
             React.useEffect(() => {
                 const initAuth = async () => {
-                    // Check for system token (Canvas Env)
                     const systemToken = typeof window !== 'undefined' ? window.__initial_auth_token : null;
                     if (systemToken) {
                         try {
@@ -193,10 +196,20 @@
                 initAuth();
                 
                 const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-                    setUser(currentUser);
                     if (currentUser) {
-                        setIsLoading(true); // Start loading data
+                        if (ALLOWED_UIDS.includes(currentUser.uid)) {
+                            setUser(currentUser);
+                            setIsLoading(true);
+                            setAuthError(null);
+                        } else {
+                            console.warn("Unauthorized UID:", currentUser.uid);
+                            setAuthError("ဤအကောင့်သည် Shared Gallery ကို အသုံးပြုခွင့်မရှိပါ။");
+                            signOut(auth);
+                            setUser(null);
+                            setIsLoading(false);
+                        }
                     } else {
+                        setUser(null);
                         setPrompts([]); 
                         setIsLoading(false);
                     }
@@ -210,15 +223,16 @@
                     return;
                 }
 
-                const collectionRef = collection(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts');
+                // ALWAYS read from MAIN_OWNER_UID path (Shared Gallery)
+                const collectionRef = collection(db, 'artifacts', currentAppId, 'users', MAIN_OWNER_UID, 'prompts');
 
                 const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
                     const fetchedPrompts = snapshot.docs.map(doc => {
                         const data = doc.data();
                         const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
                         return {
-                            ...data, // Spread data first to prevent overwriting doc.id
-                            id: doc.id, // Ensure we use the real Firestore Document ID
+                            ...data,
+                            id: doc.id,
                             date: createdAt.toLocaleDateString(),
                             timestamp: createdAt.getTime()
                         };
@@ -231,7 +245,7 @@
                     setAuthError(null);
                 }, (error) => {
                     console.error("Firestore Error:", error);
-                    setAuthError(error.message);
+                    setAuthError("Data access error. (Rules များ ပြင်ဆင်ရန် လိုအပ်နိုင်ပါသည်)");
                     setIsLoading(false);
                 });
 
@@ -337,11 +351,13 @@
                     isFavorite: false,
                     createdAt: serverTimestamp(),
                     date: new Date().toLocaleDateString(),
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    author: user.uid // Track who added it
                 };
 
                 try {
-                    await addDoc(collection(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts'), newPrompt);
+                    // Always write to MAIN_OWNER_UID path
+                    await addDoc(collection(db, 'artifacts', currentAppId, 'users', MAIN_OWNER_UID, 'prompts'), newPrompt);
                     
                     setInputText("");
                     setSelectedCategory("General");
@@ -354,7 +370,7 @@
                     if (e.code === 'resource-exhausted') {
                         alert("Data ပမာဏ များလွန်းနေပါသည်။");
                     } else if (e.code === 'permission-denied') {
-                        alert("Permission မရှိပါ။ (Login ပြန်ဝင်ကြည့်ပါ)");
+                        alert("Permission မရှိပါ။ (Firestore Rules တွင် UID နှစ်ခုလုံးကို Allow လုပ်ပေးရန်လိုအပ်ပါသည်)");
                     } else {
                         alert("သိမ်းဆည်းရာတွင် အဆင်မပြေဖြစ်နေပါသည်။");
                     }
@@ -364,10 +380,11 @@
             const handleDelete = async (id) => {
                 if (!user) return;
                 try {
-                    await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts', id));
+                    await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', MAIN_OWNER_UID, 'prompts', id));
                     if (selectedPrompt?.id === id) setSelectedPrompt(null);
                 } catch (e) {
                     console.error("Error deleting document: ", e);
+                    alert("ဖျက်ပိုင်ခွင့် မရှိပါ။ (သို့မဟုတ် Rules မှားယွင်းနေပါသည်)");
                 }
             };
 
@@ -378,15 +395,20 @@
                 const promptToUpdate = prompts.find(p => p.id === id);
                 if (!promptToUpdate) return;
 
+                // Optimistic UI update
+                const updatedPrompts = prompts.map(p => 
+                    p.id === id ? { ...p, isFavorite: !p.isFavorite } : p
+                );
+                setPrompts(updatedPrompts);
+                if (selectedPrompt?.id === id) {
+                    setSelectedPrompt(prev => ({...prev, isFavorite: !prev.isFavorite}));
+                }
+
                 try {
-                    const promptRef = doc(db, 'artifacts', currentAppId, 'users', user.uid, 'prompts', id);
+                    const promptRef = doc(db, 'artifacts', currentAppId, 'users', MAIN_OWNER_UID, 'prompts', id);
                     await updateDoc(promptRef, {
                         isFavorite: !promptToUpdate.isFavorite
                     });
-                    
-                    if (selectedPrompt?.id === id) {
-                        setSelectedPrompt(prev => ({...prev, isFavorite: !prev.isFavorite}));
-                    }
                 } catch (error) {
                     console.error("Error updating favorite:", error);
                 }
@@ -438,7 +460,7 @@
                         <div className={`w-full max-w-md p-8 rounded-2xl shadow-xl border ${theme.cardBg} ${theme.cardBorder}`}>
                             <div className="text-center mb-8">
                                 <h1 className={`text-3xl font-bold mb-2 ${theme.headerText}`}>Prompt Gallery</h1>
-                                <p className={theme.textSec}>အကောင့်ဝင်ရောက်ပါ</p>
+                                <p className={theme.textSec}>Shared Space Login</p>
                             </div>
 
                             {authError && (
@@ -497,7 +519,6 @@
                     <div className="max-w-6xl mx-auto">
                         
                         <header className="mb-8 flex items-center justify-between">
-                            {/* Logout Button */}
                             <button 
                                 onClick={handleLogout}
                                 className={`p-2 rounded-full transition-all ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-400' : 'bg-white hover:bg-slate-100 text-slate-500 shadow-sm border border-slate-200'}`}
@@ -508,9 +529,10 @@
 
                             <div className="text-center">
                                 <h1 className={`text-3xl font-bold mb-2 ${theme.headerText}`}>Prompt Gallery</h1>
-                                <p className={`${theme.textSec}`}>
-                                    Reference ပုံနှင့် ရလဒ်ပုံများကို နှိုင်းယှဉ်မှတ်သားပါ<br/>
-                                </p>
+                                <div className={`flex items-center justify-center gap-2 ${theme.textSec}`}>
+                                    <Users size={16} />
+                                    <p>Shared Gallery</p>
+                                </div>
                             </div>
                             
                             <button 
