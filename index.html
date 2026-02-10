@@ -167,7 +167,7 @@
             // UI States
             const [isDarkMode, setIsDarkMode] = React.useState(false);
             const [inputText, setInputText] = React.useState("");
-            const [selectedCategory, setSelectedCategory] = React.useState("General");
+            const [selectedCategory, setSelectedCategory] = React.useState("Portrait");
             const [genPreviewUrl, setGenPreviewUrl] = React.useState(null); 
             const [refPreviewUrl, setRefPreviewUrl] = React.useState(null); 
             const [copiedId, setCopiedId] = React.useState(null);
@@ -181,7 +181,7 @@
             const genInputRef = React.useRef(null);
             const refInputRef = React.useRef(null);
 
-            const categories = ["General", "Portrait", "Landscape", "Sci-Fi", "Anime", "Art", "Logo", "3D"];
+            const categories = ["Portrait", "Wedding", "Baby", "Landscape", "Myanmar Setting", "Other"];
 
             // --- Firebase Auth & Data Sync ---
             
@@ -373,7 +373,7 @@
                     
                     // Reset
                     setInputText("");
-                    setSelectedCategory("General");
+                    setSelectedCategory("Portrait");
                     setGenPreviewUrl(null);
                     setRefPreviewUrl(null);
                     if (genInputRef.current) genInputRef.current.value = "";
@@ -550,7 +550,7 @@
                                 <h1 className={`text-3xl font-bold mb-2 ${theme.headerText}`}>Prompt Gallery</h1>
                                 <div className={`flex items-center justify-center gap-2 ${theme.textSec}`}>
                                     <Users size={16} />
-                                    <p>Shared Gallery</p>
+                                    <p>© SaiLao</p>
                                 </div>
                             </div>
                             
@@ -912,7 +912,7 @@
                                             </div>
                                             
                                             <div className={`p-5 rounded-xl border shadow-inner mb-4 ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
-                                                <p className={`text-sm font-mono leading-relaxed whitespace-pre-wrap select-all ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                <p className={`text-sm font-mono leading-relaxed whitespace-pre-wrap select-text ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                                                     {selectedPrompt.text}
                                                 </p>
                                             </div>
